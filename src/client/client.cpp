@@ -1,64 +1,71 @@
 #include <iostream>
 #include <string>
+#include <vector>
+
 #include <string.h>
 #include <unistd.h>
 #include <sys/socket.h>
+#include <sys/types.h>
 #include <arpa/inet.h>
-#include <vector>
+#include <netdb.h>
 
-// struct sockaddr_in casts to sockaddr struct later
+
+// struct sockaddr_in casts to sockaddr struct
 // sockaddr struct is straight cancer so we do it this way
-
-// Use inet_pton() to set sockaddr_in.sin_addr value
-// This is done to convert IP string to IP in bytes inside the struct
 
 int main(){
 
-    int port = 80;
-    int cutoff = 1024;
-    std::string scheme = "http://";
-    std::string domain = "127.0.0.1";
-    // std::string domain = "93.184.216.34";
+    int status, sockfd;
+    struct addrinfo hints, *servinfo, *p;
+    char buffer[1024];
 
     std::string req = "GET / HTTP/1.1\r\nHost: localhost\r\nConnection: Close\r\n\r\n";
-
-    struct sockaddr_in myaddr;
-
     std::vector<uint8_t> data;
-    char buffer[1030];
 
-    // This needs to be done for compatibility purposes between
-    // sockaddr_in and sockaddr
-    memset(&myaddr, 0, sizeof(myaddr));
+    // Make sure struct is empty
+    memset(&hints, 0, sizeof(hints));
 
-    myaddr.sin_family = AF_INET;
-    myaddr.sin_port = htons(port);
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_STREAM;
 
-    // Create a socket
-    int sockfd = socket(AF_INET, SOCK_STREAM, 0);
-    if (sockfd < 0){
-        puts("Failed to create socket... Exiting");
+    // Get server information from hostname
+    if(status = getaddrinfo("localhost", "http", &hints, &servinfo) != 0) {
+        fprintf(stderr, "getaddr info: %s\n", gai_strerror(status));
         return -1;
     }
 
-    // TODO: Get IP via DNS
+    // Loop through linked list from getaddrinfo() and try connecting
+    for(p = servinfo; p != NULL; p = p->ai_next){
+        // Check to see if we can make a socket
+        if((sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1){
+            std::cerr << "socket error... continuing" << std::endl;
+            continue;
+        }
 
-    // Convert IP from string to binary and place in sockadd_in struct field
-    if(inet_pton(AF_INET, domain.c_str(), &myaddr.sin_addr) <= 0) {
-        puts("Failed to convert address");
-        return -1;
+        // Check to see if we can connect using that socket
+        if (connect(sockfd, p->ai_addr, p->ai_addrlen) == -1){
+            close(sockfd);
+            std::cerr << "connection error... continuing" << std::endl;
+            continue;
+        }
+
+        // break if we create a valid socket and successfully connect
+        // Alternatively, we reached the end of the linked list and failed completely
+        break;
+
     }
 
-    // Try connecting
-    if(connect(sockfd, (struct sockaddr*)&myaddr, sizeof(myaddr)) < 0){
-        puts("Failed to connect");
-        return -1;
+    // Check for the end of the linked list
+    if(p == NULL){
+        std::cerr << "Failed to connect to host" << std::endl;
     }
 
-    send(sockfd, req.c_str(), req.length(), 0);
+    // If we reach here we are connected via sockfd
+     send(sockfd, req.c_str(), req.length(), 0);
     // read(sockfd, buff, 10);
 
     // Read response
+    int cutoff = 1024;
     while(cutoff > 0 ){
         cutoff = recv(sockfd, buffer, 1024, 0);
         std::cout << "Packet length recieved: " << cutoff << std::endl;
@@ -70,6 +77,7 @@ int main(){
     }
 
 
-    
+    std::cout << "Testing completed" << std::endl;
+
     return 0;
 }
