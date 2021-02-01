@@ -20,6 +20,7 @@
 int main(){
 
     bool tls = false;
+    SSL_CTX* ctx = nullptr;
 
     std::string host = "www.rit.edu";
     std::string scheme = "http";
@@ -35,7 +36,7 @@ int main(){
         SSL_load_error_strings();
         OpenSSL_add_ssl_algorithms();
 
-        auto ctx = SSL_CTX_new(TLS_client_method());
+        ctx = SSL_CTX_new(TLS_client_method());
         SSL_CTX_set_min_proto_version(ctx, TLS1_2_VERSION);
 
         auto ssl = SSL_new(ctx);
@@ -65,6 +66,12 @@ int main(){
 
     for(auto i: data){
         std::cout << i;
+    }
+
+    // Cleanup
+    BIO_free_all(conn_bio);
+    if (ctx != nullptr){
+        SSL_CTX_free(ctx);
     }
 
     return 0;
