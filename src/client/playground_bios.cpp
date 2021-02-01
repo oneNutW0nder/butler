@@ -28,8 +28,6 @@ int main(){
     SSL_CTX_set_default_verify_paths(ctx);
     SSL_CTX_set_cert_verify_callback(ctx, always_true_callback, NULL);
 
-    SSL_set_tlsext_host_name()
-
     auto bio = BIO_new_connect("google.com:https");
     if(bio == nullptr){
         std::cout << "Error bio connect" << std::endl;
