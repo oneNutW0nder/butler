@@ -11,39 +11,37 @@ namespace http{
 
 class Request{
     private:
-        // Set by constructor
-        std::string m_method;
-        std::string m_path;
+        std::string m_method = "GET";
+        std::string m_path = "/";
+        std::string m_userAgent = "Butler Client";
+        std::string m_connectionType = "close";
+
         std::string m_host;
         std::string m_port;
-        std::string m_userAgent;
-        std::string m_connectionType;
         std::string m_body;
-        std::map<std::string, std::string> m_otherHeaders;
-        bool m_redirects;
-
-        // Class variables not set by constructor
         std::string m_req;
+        std::map<std::string, std::string> m_otherHeaders;
+
+        bool m_redirects = false;
+        bool m_tls = false;
 
     public:
+        // Custom Constructor
+        Request(std::string host, std::string port);
 
         // Methods
-        void sendRequest();
+        std::vector<uint8_t> sendRequest();
         void render();
         void redirect();
         void printRequest();
 
-        // Custom Constructor
-        Request(std::string method = "GET", std::string path = "/", std::string host = "",
-                std::string port = "80", std::string userAgent = "Butler Client", std::string connectionType = "close",
-                std::string body = "", std::map<std::string, std::string> otherHeaders = {}, bool redirects = false);
-
+        // ==== SETTERS & GETTERS ====
         const std::string &GetMMethod() const {
             return m_method;
         }
         
         void SetMMethod(const std::string &m_method) {
-            Request::m_method = m_method;
+            this->m_method = m_method;
         }
 
         const std::string &GetMPath() const {
@@ -51,7 +49,7 @@ class Request{
         }
 
         void SetMPath(const std::string &m_path) {
-            Request::m_path = m_path;
+            this->m_path = m_path;
         }
 
         const std::string &GetMHost() const {
@@ -59,7 +57,7 @@ class Request{
         }
 
         void SetMHost(const std::string &m_host) {
-            Request::m_host = m_host;
+            this->m_host = m_host;
         }
 
         const std::string &GetMPort() const {
@@ -67,7 +65,7 @@ class Request{
         }
 
         void SetMPort(const std::string &m_port) {
-            Request::m_port = m_port;
+            this->m_port = m_port;
         }
 
         const std::string &GetMUserAgent() const {
@@ -91,7 +89,7 @@ class Request{
         }
 
         void SetMBody(const std::string &m_body) {
-            Request::m_body = m_body;
+            this->m_body = m_body;
         }
 
         const std::map<std::string, std::string> &GetMOtherHeaders() const {
@@ -102,23 +100,24 @@ class Request{
             m_otherHeaders = m_other_headers;
         }
 
-        bool IsMRedirects() const {
+        bool GetMRedirects() const {
             return m_redirects;
         }
 
         void SetMRedirects(bool m_redirects) {
-            Request::m_redirects = m_redirects;
+            this->m_redirects = m_redirects;
         }
 
-        const std::string &GetMReq() const {
-            return m_req;
+        const bool &GetMTls() const {
+                return this->m_tls;
+            }
+
+        void SetMTls(const bool &m_tls){
+            this->m_tls = m_tls;
         }
 
-        void SetMReq(const std::string &m_req) {
-            Request::m_req = m_req;
-        }
 
-        };
+    };
 
 }
 

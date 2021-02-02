@@ -1,20 +1,13 @@
 #include "simpleHttp.hpp"
+#include "simpleSocket.hpp"
 #include <iostream>
 #include <fmt/core.h>
 
 // Custom Constructor
-http::Request::Request(std::string method, std::string path, std::string host, std::string port, std::string userAgent, std::string connectionType,std::string body, std::map<std::string, std::string> otherHeaders, bool redirects){
+http::Request::Request(std::string host, std::string port){
 
-    this->m_method = method;
-    this->m_path = path;
     this->m_host = host;
     this->m_port = port;
-    this->m_userAgent = userAgent;
-    this->m_connectionType = connectionType;
-    this->m_body = body;
-    // this->m_otherHeaders = otherHeaders;
-    this->m_otherHeaders = {{"Test", "Header"},{"Another", "Header"}};
-    this->m_redirects = redirects;
 
 }
 
@@ -22,6 +15,7 @@ void http::Request::render(){
 
     // Ensure port is included in host header if non standard port
     if (this->m_port != "80" && this->m_port != "443"){
+        this->m_host += ":";
         this->m_host += this->m_port;
     }
 
@@ -45,14 +39,23 @@ void http::Request::render(){
 
 }
 
-void http::Request::sendRequest(){
+// Sends request
+std::vector<uint8_t> http::Request::sendRequest(){
+
+    socket::Socket sock = socket::Socket();
+
+    sock.SetMTls(this->m_tls);
+    sock.connectTo(this->m_host, this->m_port);
+    sock.sendTo(this->m_req);
+
+    sock.readFrom();
+    sock.cleanup();
+
+    return sock.GetMResp();
 
 }
 
+// Handles redirects
 void http::Request::redirect(){
 
-}
-
-void http::Request::printRequest(){
-    std::cout << this->m_req << std::endl;
 }
