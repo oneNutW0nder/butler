@@ -10,9 +10,17 @@ int main(int argc, char* argv[]){
     std::cout << "Hello!"<<std::endl;
 
     // create Request object based on parsed URL
-    http::Request myReq = http::Request();
+    http::Request myReq = http::Request("www.rit.edu", "http");
+    myReq.SetMTls(false);
     myReq.render();
-    myReq.printRequest();
+
+    std::cout << "Sending reqest?" << std::endl;
+
+    auto resp = myReq.sendRequest();
+
+    for(auto i: resp){
+        std::cout << i;
+    }
 
     // create Socket object
 
