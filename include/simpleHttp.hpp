@@ -31,6 +31,7 @@ namespace http{
             void sendRequest();
             void render();
             void redirect();
+            void printRequest();
 
             // Custom Constructor
             Request(std::string method = "GET", std::string path = "/", std::string host = "", 

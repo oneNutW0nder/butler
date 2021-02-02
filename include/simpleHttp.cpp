@@ -1,8 +1,9 @@
 #include "simpleHttp.hpp"
+#include <iostream>
 #include <fmt/core.h>
 
 // Custom Constructor
-http::Request::Request(std::string method = "GET", std::string path = "/", std::string host = "", std::string port = "80", std::string userAgent = "Butler Client", std::string connectionType = "close",std::string body = "", std::map<std::string, std::string> otherHeaders = {}, bool redirects = false){
+http::Request::Request(std::string method, std::string path, std::string host, std::string port, std::string userAgent, std::string connectionType,std::string body, std::map<std::string, std::string> otherHeaders, bool redirects){
 
     this->m_method = method;
     this->m_path = path;
@@ -11,7 +12,8 @@ http::Request::Request(std::string method = "GET", std::string path = "/", std::
     this->m_userAgent = userAgent;
     this->m_connectionType = connectionType;
     this->m_body = body;
-    this->m_otherHeaders = otherHeaders;
+    // this->m_otherHeaders = otherHeaders;
+    this->m_otherHeaders = {{"Test", "Header"},{"Another", "Header"}};
     this->m_redirects = redirects;
 
 }
@@ -32,6 +34,7 @@ void http::Request::render(){
     auto iter = this->m_otherHeaders.begin();
     while (iter != this->m_otherHeaders.end()){
         this->m_req += fmt::format("{}: {}\r\n", iter->first, iter->second);
+        iter++;
     }
 
     // Add content length and body then we are good to go!
@@ -48,4 +51,8 @@ void http::Request::sendRequest(){
 
 void http::Request::redirect(){
 
+}
+
+void http::Request::printRequest(){
+    std::cout << this->m_req << std::endl;
 }
