@@ -4,18 +4,10 @@
 #include <fmt/format.h>
 
 #include <string.h>
-#include <unistd.h>
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <arpa/inet.h>
-#include <netdb.h>
 
 #include <openssl/err.h>
 #include <openssl/bio.h>
 #include <openssl/ssl.h>
-
-#define CLIENT_MODE 1
-
 
 int main(){
 
