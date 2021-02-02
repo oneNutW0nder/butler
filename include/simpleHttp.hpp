@@ -33,11 +33,14 @@ class Request{
         std::vector<uint8_t> sendRequest();
         void render();
         void redirect();
-        void printRequest();
 
         // ==== SETTERS & GETTERS ====
+        const std::string &GetMReq() const {
+            return this->m_req;
+        }
+
         const std::string &GetMMethod() const {
-            return m_method;
+            return this->m_method;
         }
         
         void SetMMethod(const std::string &m_method) {
@@ -45,7 +48,7 @@ class Request{
         }
 
         const std::string &GetMPath() const {
-            return m_path;
+            return this->m_path;
         }
 
         void SetMPath(const std::string &m_path) {
@@ -53,7 +56,7 @@ class Request{
         }
 
         const std::string &GetMHost() const {
-            return m_host;
+            return this->m_host;
         }
 
         void SetMHost(const std::string &m_host) {
@@ -61,7 +64,7 @@ class Request{
         }
 
         const std::string &GetMPort() const {
-            return m_port;
+            return this->m_port;
         }
 
         void SetMPort(const std::string &m_port) {
@@ -69,23 +72,23 @@ class Request{
         }
 
         const std::string &GetMUserAgent() const {
-            return m_userAgent;
+            return this->m_userAgent;
         }
 
         void SetMUserAgent(const std::string &m_user_agent) {
-            m_userAgent = m_user_agent;
+            this->m_userAgent = m_user_agent;
         }
 
         const std::string &GetMConnectionType() const {
-            return m_connectionType;
+            return this->m_connectionType;
         }
 
         void SetMConnectionType(const std::string &m_connection_type) {
-            m_connectionType = m_connection_type;
+            this->m_connectionType = m_connection_type;
         }
 
         const std::string &GetMBody() const {
-            return m_body;
+            return this->m_body;
         }
 
         void SetMBody(const std::string &m_body) {
@@ -93,11 +96,11 @@ class Request{
         }
 
         const std::map<std::string, std::string> &GetMOtherHeaders() const {
-            return m_otherHeaders;
+            return this->m_otherHeaders;
         }
 
         void SetMOtherHeaders(const std::map<std::string, std::string> &m_other_headers) {
-            m_otherHeaders = m_other_headers;
+            this->m_otherHeaders = m_other_headers;
         }
 
         bool GetMRedirects() const {

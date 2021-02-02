@@ -18,6 +18,7 @@ socket::Socket::Socket(){
 // Set up BIOs and chain if needed and get ready to read/write data
 void socket::Socket::connectTo(std::string host, std::string port){
 
+    std::cout<< host << " :: " << port << std::endl;
     BIO_set_conn_hostname(this->m_conn_bio, fmt::format("{}:{}", host, port).c_str());
 
     if(this->m_tls){
@@ -47,7 +48,16 @@ void socket::Socket::readFrom(){
     std::cout << "reading..\n";
     while(cutoff > 0){
         cutoff = BIO_read(this->m_conn_bio, this->m_resp_buffer, 1024);
+        if (cutoff == -1){
+            std::cout << "here\n";
+            if(BIO_should_retry(this->m_conn_bio)){
+                std::cout << "It says to retry" << std::endl;
+            }else{
+                std::cout << "It was an error" << std::endl;
+            }
+        }
         this->m_resp.insert(this->m_resp.end(), this->m_resp_buffer, this->m_resp_buffer+cutoff);
+        
     }
 
 }
