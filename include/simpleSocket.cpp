@@ -1,5 +1,5 @@
 #include "simpleSocket.hpp"
-#include <string.h>
+#include <cstring>
 #include <fmt/core.h>
 
 socket::Socket::Socket(){
@@ -16,7 +16,7 @@ socket::Socket::Socket(){
 }
 
 // Set up BIOs and chain if needed and get ready to read/write data
-void socket::Socket::connectTo(std::string host, std::string port){
+void socket::Socket::connectTo(const std::string& host, const std::string& port){
 
     BIO_set_conn_hostname(this->m_conn_bio, fmt::format("{}:{}", host, port).c_str());
 
@@ -36,9 +36,10 @@ void socket::Socket::connectTo(std::string host, std::string port){
 
         // Build BIO chain with connect BIO
         this->m_conn_bio = BIO_push(m_ssl_bio, m_conn_bio);
-    }
 
+    }
 }
+
 
 // Read data from BIOs
 void socket::Socket::readFrom(){
@@ -61,7 +62,7 @@ void socket::Socket::readFrom(){
 }
 
 // Write data to BIOs
-void socket::Socket::sendTo(std::string data){
+void socket::Socket::sendTo(const std::string& data){
 
     BIO_write(this->m_conn_bio, data.c_str(), data.length());
 

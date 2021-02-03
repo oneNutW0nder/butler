@@ -1,6 +1,5 @@
 #include <iostream>
 #include "simpleHttp.hpp"
-#include "simpleSocket.hpp"
 
 int main(int argc, char* argv[]){
 

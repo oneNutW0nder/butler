@@ -1,15 +1,10 @@
 #include <iostream>
 #include <memory>
-#include <stdexcept>
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
-#include <string>
 #include <vector>
 
 #include <openssl/bio.h>
 #include <openssl/ssl.h>
-#include <openssl/err.h>
 
 static int always_true_callback(X509_STORE_CTX *ctx, void *arg)
 {

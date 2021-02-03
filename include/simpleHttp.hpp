@@ -5,7 +5,7 @@
 #include <sstream>
 #include <vector>
 #include <map>
-#include <stdint.h>
+#include <cstdint>
 
 namespace http{
 
@@ -35,11 +35,11 @@ class Request{
         void redirect();
 
         // ==== SETTERS & GETTERS ====
-        const std::string &GetMReq() const {
+        [[nodiscard]] const std::string &GetMReq() const {
             return this->m_req;
         }
 
-        const std::string &GetMMethod() const {
+        [[nodiscard]] const std::string &GetMMethod() const {
             return this->m_method;
         }
         
@@ -47,7 +47,7 @@ class Request{
             this->m_method = m_method;
         }
 
-        const std::string &GetMPath() const {
+        [[nodiscard]] const std::string &GetMPath() const {
             return this->m_path;
         }
 
@@ -55,7 +55,7 @@ class Request{
             this->m_path = m_path;
         }
 
-        const std::string &GetMHost() const {
+        [[nodiscard]] const std::string &GetMHost() const {
             return this->m_host;
         }
 
@@ -63,7 +63,7 @@ class Request{
             this->m_host = m_host;
         }
 
-        const std::string &GetMPort() const {
+        [[nodiscard]] const std::string &GetMPort() const {
             return this->m_port;
         }
 
@@ -71,7 +71,7 @@ class Request{
             this->m_port = m_port;
         }
 
-        const std::string &GetMUserAgent() const {
+        [[nodiscard]] const std::string &GetMUserAgent() const {
             return this->m_userAgent;
         }
 
@@ -79,7 +79,7 @@ class Request{
             this->m_userAgent = m_user_agent;
         }
 
-        const std::string &GetMConnectionType() const {
+        [[nodiscard]] const std::string &GetMConnectionType() const {
             return this->m_connectionType;
         }
 
@@ -87,7 +87,7 @@ class Request{
             this->m_connectionType = m_connection_type;
         }
 
-        const std::string &GetMBody() const {
+        [[nodiscard]] const std::string &GetMBody() const {
             return this->m_body;
         }
 
@@ -95,7 +95,7 @@ class Request{
             this->m_body = m_body;
         }
 
-        const std::map<std::string, std::string> &GetMOtherHeaders() const {
+        [[nodiscard]] const std::map<std::string, std::string> &GetMOtherHeaders() const {
             return this->m_otherHeaders;
         }
 
@@ -103,7 +103,7 @@ class Request{
             this->m_otherHeaders = m_other_headers;
         }
 
-        bool GetMRedirects() const {
+        [[nodiscard]] bool GetMRedirects() const {
             return m_redirects;
         }
 
@@ -111,7 +111,7 @@ class Request{
             this->m_redirects = m_redirects;
         }
 
-        const bool &GetMTls() const {
+        [[nodiscard]] const bool &GetMTls() const {
                 return this->m_tls;
             }
 

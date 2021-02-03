@@ -25,8 +25,8 @@ namespace socket{
         public:
 
             void readFrom();
-            void sendTo(std::string data);
-            void connectTo(std::string host, std::string port);
+            void sendTo(const std::string& data);
+            void connectTo(const std::string& host, const std::string& port);
             void cleanup();
 
 
@@ -38,7 +38,7 @@ namespace socket{
                 return this->m_resp;
             }
 
-            const bool &GetMTls() const {
+            [[nodiscard]] const bool &GetMTls() const {
                 return this->m_tls;
             }
 

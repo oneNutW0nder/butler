@@ -1,13 +1,13 @@
 #include "simpleHttp.hpp"
 #include "simpleSocket.hpp"
-#include <iostream>
+#include <utility>
 #include <fmt/core.h>
 
 // Custom Constructor
 http::Request::Request(std::string host, std::string port){
 
-    this->m_host = host;
-    this->m_port = port;
+    this->m_host = std::move(host);
+    this->m_port = std::move(port);
 
 }
 
