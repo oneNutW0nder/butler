@@ -6,7 +6,7 @@ SET(CMAKE_BUILD_TYPE release)
 
 include_directories(include)
 
-add_library(http SHARED include/simpleHttp.cpp)
+add_library(http SHARED include/simpleHttp.cpp include/util.cpp include/util.hpp)
 add_library(socket SHARED include/simpleSocket.cpp)
 
 add_subdirectory(src/client)
