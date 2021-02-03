@@ -13,14 +13,6 @@ http::Request::Request(std::string host, std::string port) {
 
 void http::Request::render() {
 
-    // Ensure port is included in host header if non standard port
-    if (this->m_port != "80" && this->m_port != "443"
-        && this->m_port != "http" && this->m_port != "https") {
-
-        this->m_host += ":";
-        this->m_host += this->m_port;
-    }
-
     this->m_req = fmt::format("{} {} HTTP/1.1\r\n", this->m_method, this->m_path);
     this->m_req += fmt::format("Host: {}\r\n", this->m_host);
     this->m_req += fmt::format("User-Agent: {}\r\n", this->m_userAgent);
