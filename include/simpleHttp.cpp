@@ -4,18 +4,19 @@
 #include <fmt/core.h>
 
 // Custom Constructor
-http::Request::Request(std::string host, std::string port){
+http::Request::Request(std::string host, std::string port) {
 
     this->m_host = std::move(host);
     this->m_port = std::move(port);
 
 }
 
-void http::Request::render(){
+void http::Request::render() {
 
     // Ensure port is included in host header if non standard port
     if (this->m_port != "80" && this->m_port != "443"
-        && this->m_port != "http" && this->m_port != "https"){
+        && this->m_port != "http" && this->m_port != "https") {
+
         this->m_host += ":";
         this->m_host += this->m_port;
     }
@@ -27,7 +28,7 @@ void http::Request::render(){
 
     // Add other headers given by the user
     auto iter = this->m_otherHeaders.begin();
-    while (iter != this->m_otherHeaders.end()){
+    while (iter != this->m_otherHeaders.end()) {
         this->m_req += fmt::format("{}: {}\r\n", iter->first, iter->second);
         iter++;
     }
@@ -41,7 +42,7 @@ void http::Request::render(){
 }
 
 // Sends request
-std::vector<uint8_t> http::Request::sendRequest(){
+std::vector<uint8_t> http::Request::sendRequest() {
 
     socket::Socket sock = socket::Socket();
 
@@ -57,6 +58,6 @@ std::vector<uint8_t> http::Request::sendRequest(){
 }
 
 // Handles redirects
-void http::Request::redirect(){
+void http::Request::redirect() {
 
 }

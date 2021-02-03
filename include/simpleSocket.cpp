@@ -2,7 +2,7 @@
 #include <cstring>
 #include <fmt/core.h>
 
-socket::Socket::Socket(){
+socket::Socket::Socket() {
     this->m_ctx = nullptr;
     this->m_ssl_bio = nullptr;
     this->m_tls = false;
@@ -16,14 +16,13 @@ socket::Socket::Socket(){
 }
 
 // Set up BIOs and chain if needed and get ready to read/write data
-void socket::Socket::connectTo(const std::string& host, const std::string& port){
+void socket::Socket::connectTo(const std::string &host, const std::string &port) {
 
     BIO_set_conn_hostname(this->m_conn_bio, fmt::format("{}:{}", host, port).c_str());
 
-    if(this->m_tls){
+    if (this->m_tls) {
         SSL_load_error_strings();
         OpenSSL_add_ssl_algorithms();
-
         this->m_ctx = SSL_CTX_new(TLS_client_method());
         SSL_CTX_set_min_proto_version(this->m_ctx, TLS1_2_VERSION);
 
@@ -42,36 +41,36 @@ void socket::Socket::connectTo(const std::string& host, const std::string& port)
 
 
 // Read data from BIOs
-void socket::Socket::readFrom(){
+void socket::Socket::readFrom() {
 
     int cutoff = 1030;
-    while(cutoff > 0){
+    while (cutoff > 0) {
         cutoff = BIO_read(this->m_conn_bio, this->m_resp_buffer, 1024);
-        if (cutoff == -1){
-            if(BIO_should_retry(this->m_conn_bio)){
+        if (cutoff == -1) {
+            if (BIO_should_retry(this->m_conn_bio)) {
                 std::cout << "socket::readFrom() :: BIO read retry..." << std::endl;
-            }else{
+            } else {
                 std::cout << "socket::readFrom() :: BIO read fail... exiting" << std::endl;
                 exit(42);
             }
         }
-        this->m_resp.insert(this->m_resp.end(), this->m_resp_buffer, this->m_resp_buffer+cutoff);
-        
+        this->m_resp.insert(this->m_resp.end(), this->m_resp_buffer, this->m_resp_buffer + cutoff);
+
     }
 
 }
 
 // Write data to BIOs
-void socket::Socket::sendTo(const std::string& data){
+void socket::Socket::sendTo(const std::string &data) {
 
     BIO_write(this->m_conn_bio, data.c_str(), data.length());
 
 }
 
-void socket::Socket::cleanup(){
+void socket::Socket::cleanup() {
 
     BIO_free_all(this->m_conn_bio);
-    if (this->m_ctx != nullptr){
+    if (this->m_ctx != nullptr) {
         SSL_CTX_free(this->m_ctx);
     }
 

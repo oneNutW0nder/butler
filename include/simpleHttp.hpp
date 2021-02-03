@@ -7,9 +7,9 @@
 #include <map>
 #include <cstdint>
 
-namespace http{
+namespace http {
 
-class Request{
+    class Request {
     private:
         std::string m_method = "GET";
         std::string m_path = "/";
@@ -31,7 +31,9 @@ class Request{
 
         // Methods
         std::vector<uint8_t> sendRequest();
+
         void render();
+
         void redirect();
 
         // ==== SETTERS & GETTERS ====
@@ -42,7 +44,7 @@ class Request{
         [[nodiscard]] const std::string &GetMMethod() const {
             return this->m_method;
         }
-        
+
         void SetMMethod(const std::string &m_method) {
             this->m_method = m_method;
         }
@@ -112,10 +114,10 @@ class Request{
         }
 
         [[nodiscard]] const bool &GetMTls() const {
-                return this->m_tls;
-            }
+            return this->m_tls;
+        }
 
-        void SetMTls(const bool &m_tls){
+        void SetMTls(const bool &m_tls) {
             this->m_tls = m_tls;
         }
 
@@ -123,7 +125,6 @@ class Request{
     };
 
 }
-
 
 
 #endif
