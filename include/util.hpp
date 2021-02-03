@@ -1,8 +1,25 @@
-//
-// Created by simon on 2/2/21.
-//
+#ifndef UTIL_HPP
+#define UTIL_HPP
 
-#ifndef BUTLER_CLIENT_UTIL_HPP
-#define BUTLER_CLIENT_UTIL_HPP
+#include <iostream>
+#include <string>
+#include <map>
 
-#endif //BUTLER_CLIENT_UTIL_HPP
+/**
+ * Take in a URL (Ex. https://www.rit.edu)
+ * Parse and split into:
+ *      Scheme: https
+ *      Host: www.rit.edu
+ *      Path: Default = /
+ *
+ * @param url
+ */
+std::map<std::string, std::string> parseUrl(std::string url);
+
+/**
+ * Take in the entire request and return the headers with associated values
+ * @param req
+ */
+std::map<std::string, std::string> parseHeaders(std::string req);
+
+#endif
