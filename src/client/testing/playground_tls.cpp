@@ -13,24 +13,20 @@
 
 const int ERROR_STATUS = -1;
 
-SSL_CTX *InitSSL_CTX(void)
-{
+SSL_CTX *InitSSL_CTX(void) {
     const SSL_METHOD *method = TLS_client_method(); /* Create new client-method instance */
     SSL_CTX *ctx = SSL_CTX_new(method);
 
-    if (ctx == nullptr)
-    {
+    if (ctx == nullptr) {
         ERR_print_errors_fp(stderr);
         exit(EXIT_FAILURE);
     }
     return ctx;
 }
 
-int OpenConnection(const char *hostname, const char *port)
-{
+int OpenConnection(const char *hostname, const char *port) {
     struct hostent *host;
-    if ((host = gethostbyname(hostname)) == nullptr)
-    {
+    if ((host = gethostbyname(hostname)) == nullptr) {
         perror(hostname);
         exit(EXIT_FAILURE);
     }
@@ -41,24 +37,20 @@ int OpenConnection(const char *hostname, const char *port)
     hints.ai_protocol = IPPROTO_TCP;
 
     const int status = getaddrinfo(hostname, port, &hints, &addrs);
-    if (status != 0)
-    {
+    if (status != 0) {
         fprintf(stderr, "%s: %s\n", hostname, gai_strerror(status));
         exit(EXIT_FAILURE);
     }
 
     int sfd, err;
-    for (struct addrinfo *addr = addrs; addr != nullptr; addr = addr->ai_next)
-    {
+    for (struct addrinfo *addr = addrs; addr != nullptr; addr = addr->ai_next) {
         sfd = socket(addrs->ai_family, addrs->ai_socktype, addrs->ai_protocol);
-        if (sfd == ERROR_STATUS)
-        {
+        if (sfd == ERROR_STATUS) {
             err = errno;
             continue;
         }
 
-        if (connect(sfd, addr->ai_addr, addr->ai_addrlen) == 0)
-        {
+        if (connect(sfd, addr->ai_addr, addr->ai_addrlen) == 0) {
             break;
         }
 
@@ -69,19 +61,16 @@ int OpenConnection(const char *hostname, const char *port)
 
     freeaddrinfo(addrs);
 
-    if (sfd == ERROR_STATUS)
-    {
+    if (sfd == ERROR_STATUS) {
         fprintf(stderr, "%s: %s\n", hostname, strerror(err));
         exit(EXIT_FAILURE);
     }
     return sfd;
 }
 
-void DisplayCerts(SSL *ssl)
-{
+void DisplayCerts(SSL *ssl) {
     X509 *cert = SSL_get_peer_certificate(ssl); /* get the server's certificate */
-    if (cert != nullptr)
-    {
+    if (cert != nullptr) {
         printf("Server certificates:\n");
         char *line = X509_NAME_oneline(X509_get_subject_name(cert), 0, 0);
         printf("Subject: %s\n", line);
@@ -90,19 +79,15 @@ void DisplayCerts(SSL *ssl)
         printf("Issuer: %s\n", line);
         delete line;
         X509_free(cert);
-    }
-    else
-    {
+    } else {
         printf("Info: No client certificates configured.\n");
     }
 }
 
-int main(int argc, char const *argv[])
-{
+int main(int argc, char const *argv[]) {
     SSL_CTX *ctx = InitSSL_CTX();
     SSL *ssl = SSL_new(ctx);
-    if (ssl == nullptr)
-    {
+    if (ssl == nullptr) {
         fprintf(stderr, "SSL_new() failed\n");
         exit(EXIT_FAILURE);
     }
@@ -113,8 +98,7 @@ int main(int argc, char const *argv[])
     SSL_set_fd(ssl, sfd);
 
     const int status = SSL_connect(ssl);
-    if (status != 1)
-    {
+    if (status != 1) {
         SSL_get_error(ssl, status);
         ERR_print_errors_fp(stderr); //High probability this doesn't do anything
         fprintf(stderr, "SSL_connect failed with SSL_get_error code %d\n", status);

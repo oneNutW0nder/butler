@@ -16,19 +16,16 @@ using namespace std;
 SSL *ssl;
 int sock;
 
-int RecvPacket()
-{
+int RecvPacket() {
     int len = 100;
     char buf[1000000];
-    do
-    {
+    do {
         len = SSL_read(ssl, buf, 100);
         buf[len] = 0;
         printf("%s\n", buf);
         //        fprintf(fp, "%s",buf);
     } while (len > 0);
-    if (len < 0)
-    {
+    if (len < 0) {
         int err = SSL_get_error(ssl, len);
         if (err == SSL_ERROR_WANT_READ)
             return 0;
@@ -39,32 +36,27 @@ int RecvPacket()
     }
 }
 
-int SendPacket(const char *buf)
-{
+int SendPacket(const char *buf) {
     int len = SSL_write(ssl, buf, strlen(buf));
-    if (len < 0)
-    {
+    if (len < 0) {
         int err = SSL_get_error(ssl, len);
-        switch (err)
-        {
-        case SSL_ERROR_WANT_WRITE:
-            return 0;
-        case SSL_ERROR_WANT_READ:
-            return 0;
-        case SSL_ERROR_ZERO_RETURN:
-        case SSL_ERROR_SYSCALL:
-        case SSL_ERROR_SSL:
-        default:
-            return -1;
+        switch (err) {
+            case SSL_ERROR_WANT_WRITE:
+                return 0;
+            case SSL_ERROR_WANT_READ:
+                return 0;
+            case SSL_ERROR_ZERO_RETURN:
+            case SSL_ERROR_SYSCALL:
+            case SSL_ERROR_SSL:
+            default:
+                return -1;
         }
     }
 }
 
-void log_ssl()
-{
+void log_ssl() {
     int err;
-    while (err = ERR_get_error())
-    {
+    while (err = ERR_get_error()) {
         char *str = ERR_error_string(err, 0);
         if (!str)
             return;
@@ -74,12 +66,10 @@ void log_ssl()
     }
 }
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
     int s;
     s = socket(AF_INET, SOCK_STREAM, 0);
-    if (s < 0)
-    {
+    if (s < 0) {
         printf("Error creating socket.\n");
         return -1;
     }
@@ -89,8 +79,7 @@ int main(int argc, char *argv[])
     sa.sin_addr.s_addr = inet_addr("172.217.15.99"); // address of google.ru
     sa.sin_port = htons(443);
     socklen_t socklen = sizeof(sa);
-    if (connect(s, (struct sockaddr *)&sa, socklen))
-    {
+    if (connect(s, (struct sockaddr *) &sa, socklen)) {
         printf("Error connecting to server.\n");
         return -1;
     }
@@ -100,8 +89,7 @@ int main(int argc, char *argv[])
     const SSL_METHOD *meth = TLSv1_2_client_method();
     SSL_CTX *ctx = SSL_CTX_new(meth);
     ssl = SSL_new(ctx);
-    if (!ssl)
-    {
+    if (!ssl) {
         printf("Error creating SSL.\n");
         log_ssl();
         return -1;
@@ -109,8 +97,7 @@ int main(int argc, char *argv[])
     sock = SSL_get_fd(ssl);
     SSL_set_fd(ssl, s);
     int err = SSL_connect(ssl);
-    if (err <= 0)
-    {
+    if (err <= 0) {
         printf("Error creating SSL connection.  err=%x\n", err);
         log_ssl();
         fflush(stdout);

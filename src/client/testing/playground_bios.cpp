@@ -6,13 +6,12 @@
 #include <openssl/bio.h>
 #include <openssl/ssl.h>
 
-static int always_true_callback(X509_STORE_CTX *ctx, void *arg)
-{
+static int always_true_callback(X509_STORE_CTX *ctx, void *arg) {
     return 1;
 }
 
 
-int main(){
+int main() {
 
     std::string req = "GET / HTTP/1.1\r\nHost: https://google.com\r\nConnection: close\r\n\r\n";
 
@@ -24,18 +23,18 @@ int main(){
     SSL_CTX_set_cert_verify_callback(ctx, always_true_callback, NULL);
 
     auto bio = BIO_new_connect("google.com:https");
-    if(bio == nullptr){
+    if (bio == nullptr) {
         std::cout << "Error bio connect" << std::endl;
         return -1;
     }
 
     std::cout << "in between!" << std::endl;
 
-    if(BIO_do_connect(bio) <= 0) {
+    if (BIO_do_connect(bio) <= 0) {
         std::cout << "Error connecting to server" << std::endl;
         return -1;
     }
-    
+
 
     auto ssl_bio = BIO_new_ssl(ctx, 1);
 
@@ -47,17 +46,15 @@ int main(){
     std::vector<uint8_t> data;
 
     std::cout << "down here!" << std::endl;
-    while(cutoff > 0 ){
+    while (cutoff > 0) {
         cutoff = BIO_read(ssl_bio, buffer, 1024);
         std::cout << "Packet length recieved: " << cutoff << std::endl;
-        data.insert(data.end(), buffer, buffer+cutoff);
+        data.insert(data.end(), buffer, buffer + cutoff);
     }
 
-    for(auto i: data){
+    for (auto i: data) {
         std::cout << i;
     }
-
-
 
 
     return 0;

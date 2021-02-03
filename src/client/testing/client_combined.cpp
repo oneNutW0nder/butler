@@ -8,10 +8,10 @@
 #include <openssl/bio.h>
 #include <openssl/ssl.h>
 
-int main(){
+int main() {
 
     bool tls = false;
-    SSL_CTX* ctx = nullptr;
+    SSL_CTX *ctx = nullptr;
 
     std::string host = "www.rit.edu";
     std::string scheme = "http";
@@ -23,7 +23,7 @@ int main(){
     auto conn_bio = BIO_new(BIO_s_connect());
     BIO_set_conn_hostname(conn_bio, fmt::format("{}:{}", host, scheme).c_str());
 
-    if(tls){
+    if (tls) {
         SSL_load_error_strings();
         OpenSSL_add_ssl_algorithms();
 
@@ -49,19 +49,19 @@ int main(){
     std::vector<uint8_t> data;
 
     // read all data
-    while(cutoff > 0 ){
+    while (cutoff > 0) {
         cutoff = BIO_read(conn_bio, buffer, 1024);
         std::cout << "Packet length recieved: " << cutoff << std::endl;
-        data.insert(data.end(), buffer, buffer+cutoff);
+        data.insert(data.end(), buffer, buffer + cutoff);
     }
 
-    for(auto i: data){
+    for (auto i: data) {
         std::cout << i;
     }
 
     // Cleanup
     BIO_free_all(conn_bio);
-    if (ctx != nullptr){
+    if (ctx != nullptr) {
         SSL_CTX_free(ctx);
     }
 

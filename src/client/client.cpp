@@ -1,12 +1,12 @@
 #include <iostream>
 #include "simpleHttp.hpp"
 
-int main(int argc, char* argv[]){
+int main(int argc, char *argv[]) {
 
     // parse command line args and validate
 
     // parse URL entered in argv
-    std::cout << "Hello!"<<std::endl;
+    std::cout << "Hello!" << std::endl;
 
     // create Request object based on parsed URL
     auto myReq = http::Request("www.rit.edu", "http");
@@ -17,7 +17,7 @@ int main(int argc, char* argv[]){
 
     auto resp = myReq.sendRequest();
 
-    for(auto i: resp){
+    for (auto i: resp) {
         std::cout << i;
     }
 
