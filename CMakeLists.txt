@@ -8,7 +8,7 @@ include_directories(include)
 
 add_library(http SHARED include/simpleHttp.cpp)
 add_library(socket SHARED include/simpleSocket.cpp)
-add_library(util SHARED include/util.cpp include/util.hpp)
-#add_library(argparse SHARED include/argparse.hpp)
+add_library(util SHARED include/util.cpp)
+add_library(argparse INTERFACE include/argparse.hpp)
 
 add_subdirectory(src/client)
