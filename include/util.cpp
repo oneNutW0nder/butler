@@ -2,20 +2,17 @@
 #include <regex>
 
 // trim from end of string (right)
-inline std::string& rtrim(std::string& s, const char* t){
-    s.erase(s.find_last_not_of(t) + 1);
+inline std::string& rtrim(std::string& s, const std::string& t){
+    int loc = s.rfind(t);
+    s.erase(loc, t.length());
     return s;
 }
 
 // trim from beginning of string (left)
-inline std::string& ltrim(std::string& s, const char* t){
-    s.erase(0, s.find_first_not_of(t));
+inline std::string& ltrim(std::string& s, const std::string& t){
+    int loc = s.find(t);
+    s.erase(loc, t.length());
     return s;
-}
-
-// trim from both ends of string (right then left)
-inline std::string& trim(std::string& s, const char* t){
-    return ltrim(rtrim(s, t), t);
 }
 
 
@@ -49,18 +46,18 @@ std::map<std::string, std::string> parseUrl(std::string &url){
     if ((loc = url.find("/")) == std::string::npos){
         host = url;
         path = "/";
-        url = ltrim(url, host.c_str());
+        url = ltrim(url, host);
     }else{
         host = url.substr(0, loc);
         path = url.substr(loc, url.length());
-        url = ltrim(url, host.c_str());
-        url = ltrim(url, path.c_str());
+        url = ltrim(url, host);
+        url = ltrim(url, path);
     }
 
     // Check for nonstandard port
     if ((loc = host.find(":")) != std::string::npos){
         port = host.substr(loc+1, host.length());
-        url = rtrim(url, port.c_str());
+        url = rtrim(url, port);
     }
 
     // Return anything that wasn't parsed for the user to handle
@@ -75,8 +72,37 @@ std::map<std::string, std::string> parseUrl(std::string &url){
             {"other", other}};
 }
 
-//std::map<std::string, std::string> parseHeaders(std::string req){
-//
+std::map<std::string, std::string> parseHeaders(std::string& req){
+
+    int loc_x;
+    int loc_y;
+
+    // Return an empty map if we don't find the end of the headers
+    if((loc_x = req.find("\r\n\r\n")) == std::string::npos){
+        return {};
+    }
+
+    std::map<std::string, std::string> headers;
+    std::string tmp;
+
+    while((loc_x = req.find("\r\n")) != std::string::npos){
+        if (loc_x == 0){
+            break;
+        }
+        tmp = req.substr(0, loc_x);
+//        tmp = ltrim(tmp, ":");
+        // If we are somehow not in a valid header this will fail
+        loc_y = tmp.find(" ");
+        headers[tmp.substr(0, loc_y)] = tmp.substr(loc_y + 1, tmp.length()-2);
+
+        req = ltrim(req, (tmp + "\r\n"));
+    }
+
+    return headers;
+}
+
+
+
 //}
 //
 //void parseHtml(){
@@ -92,5 +118,3 @@ std::map<std::string, std::string> parseUrl(std::string &url){
 //            }
 //        }
 //    }
-//
-//}
