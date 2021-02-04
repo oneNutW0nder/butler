@@ -14,10 +14,8 @@ int main(int argc, const char *argv[]) {
     myReq.parseUrl(url);
     myReq.render();
 
-    auto resp = myReq.sendRequest();
-    std::cout << myReq.GetMReq() << std::endl;
-    std::string stringResp(resp.begin(), resp.end());
-    std::cout << stringResp << std::endl;
+    myReq.sendRequest();
+    myReq.parseResp();
 
     // parse html response
 
