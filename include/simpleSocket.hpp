@@ -29,13 +29,13 @@ namespace socket {
         void connectTo(const std::string &host, const std::string &port);
 
 
-
         // Custom constructor
         Socket();
+
         ~Socket();
 
         // ==== SETTERS & GETTERS ====
-        const std::vector<uint8_t> &GetMResp() {
+        [[nodiscard]] const std::vector<uint8_t> &GetMResp() {
             return this->m_resp;
         }
 

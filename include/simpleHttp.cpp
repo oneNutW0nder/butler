@@ -70,7 +70,7 @@ std::vector<uint8_t> http::Request::sendRequest() {
 
 }
 
-void http::Request::parseUrl(std::string &url){
+void http::Request::parseUrl(std::string &url) {
 
     std::string scheme;
     std::string host;
@@ -85,25 +85,23 @@ void http::Request::parseUrl(std::string &url){
         this->m_tls = true;
         this->m_port = "443";
         url = ltrim(url, "https://");
-    }
-    else if ((loc = url.find("http://")) != std::string::npos){
+    } else if ((loc = url.find("http://")) != std::string::npos) {
         scheme = "http";
         this->m_tls = false;
         this->m_port = "80";
         url = ltrim(url, "http://");
-    }
-    else{
+    } else {
         // This block handles receiving a path such as /absolute/path or "relative/path"
         // TODO:
     }
 
     // No path remaining in URL so we can setup defaults
     // Ex: url = www.rit.edu
-    if ((loc = url.find("/")) == std::string::npos){
+    if ((loc = url.find("/")) == std::string::npos) {
         this->m_host = url;
         this->m_path = "/";
         url = ltrim(url, this->m_host);
-    }else{
+    } else {
         this->m_host = url.substr(0, loc);
         this->m_path = url.substr(loc, url.length());
         url = ltrim(url, this->m_host);
@@ -111,39 +109,39 @@ void http::Request::parseUrl(std::string &url){
     }
 
     // Check for nonstandard port
-    if ((loc = host.find(":")) != std::string::npos){
-        this->m_port = host.substr(loc+1, this->m_host.length());
+    if ((loc = host.find(":")) != std::string::npos) {
+        this->m_port = host.substr(loc + 1, this->m_host.length());
         url = rtrim(url, this->m_port);
     }
 
     // Return anything that wasn't parsed for the user to handle
-    if(!url.empty()){
+    if (!url.empty()) {
         this->m_extra = url;
     }
 
 }
 
-std::map<std::string, std::string> http::Request::parseHeaders(std::string& req){
+std::map<std::string, std::string> http::Request::parseHeaders(std::string &req) {
 
     int loc_x;
     int loc_y;
 
     // Return an empty map if we don't find the end of the headers
-    if((loc_x = req.find("\r\n\r\n")) == std::string::npos){
+    if ((loc_x = req.find("\r\n\r\n")) == std::string::npos) {
         return {};
     }
 
     std::map<std::string, std::string> headers;
     std::string tmp;
 
-    while((loc_x = req.find("\r\n")) != std::string::npos){
+    while ((loc_x = req.find("\r\n")) != std::string::npos) {
         // End the loop when we reach the \r\n\r\n
-        if (loc_x == 0){
+        if (loc_x == 0) {
             break;
         }
         tmp = this->m_req.substr(0, loc_x);
         loc_y = tmp.find(" ");
-        headers[tmp.substr(0, loc_y)] = tmp.substr(loc_y + 1, tmp.length()-2);
+        headers[tmp.substr(0, loc_y)] = tmp.substr(loc_y + 1, tmp.length() - 2);
 
         this->m_req = ltrim(req, tmp.append("\r\n"));
     }

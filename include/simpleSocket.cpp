@@ -11,7 +11,9 @@ socket::Socket::Socket() {
     memset(this->m_resp_buffer, 0, sizeof(this->m_resp_buffer));
 }
 
-socket::Socket::~Socket(){
+socket::Socket::~Socket() {
+    // TODO: I am not convinced that this sequence truly tears down
+    //       the connection and respective BIOs
     BIO_free_all(this->m_conn_bio);
     if (this->m_ctx != nullptr) {
         SSL_CTX_free(this->m_ctx);

@@ -7,12 +7,15 @@
 #define ARGPARSE_HPP_
 
 #if __cplusplus >= 201103L
+
 #include <unordered_map>
+
 typedef std::unordered_map<std::string, size_t> IndexMap;
 #else
 #include <map>
 typedef std::map<std::string, size_t> IndexMap;
 #endif
+
 #include <string>
 #include <vector>
 #include <typeinfo>
@@ -47,9 +50,13 @@ typedef std::map<std::string, size_t> IndexMap;
 class ArgumentParser {
 private:
     class Any;
+
     class Argument;
+
     class PlaceHolder;
+
     class Holder;
+
     typedef std::string String;
     typedef std::vector<Any> AnyVector;
     typedef std::vector<String> StringVector;
@@ -62,40 +69,49 @@ private:
     public:
         // constructor
         Any() : content(0) {}
+
         // destructor
         ~Any() { delete content; }
+
         // INWARD CONVERSIONS
-        Any(const Any& other) : content(other.content ? other.content->clone() : 0) {}
-        template <typename ValueType>
-        Any(const ValueType& other)
+        Any(const Any &other) : content(other.content ? other.content->clone() : 0) {}
+
+        template<typename ValueType>
+        Any(const ValueType &other)
                 : content(new Holder<ValueType>(other)) {}
-        Any& swap(Any& other) {
+
+        Any &swap(Any &other) {
             std::swap(content, other.content);
             return *this;
         }
-        Any& operator=(const Any& rhs) {
+
+        Any &operator=(const Any &rhs) {
             Any tmp(rhs);
             return swap(tmp);
         }
-        template <typename ValueType>
-        Any& operator=(const ValueType& rhs) {
+
+        template<typename ValueType>
+        Any &operator=(const ValueType &rhs) {
             Any tmp(rhs);
             return swap(tmp);
         }
+
         // OUTWARD CONVERSIONS
-        template <typename ValueType>
-        ValueType* toPtr() const {
+        template<typename ValueType>
+        ValueType *toPtr() const {
             return content->type_info() == typeid(ValueType)
-                   ? &static_cast<Holder<ValueType>*>(content)->held_
+                   ? &static_cast<Holder<ValueType> *>(content)->held_
                    : 0;
         }
-        template <typename ValueType>
-        ValueType& castTo() {
+
+        template<typename ValueType>
+        ValueType &castTo() {
             if (!toPtr<ValueType>()) throw std::bad_cast();
             return *toPtr<ValueType>();
         }
-        template <typename ValueType>
-        const ValueType& castTo() const {
+
+        template<typename ValueType>
+        const ValueType &castTo() const {
             if (!toPtr<ValueType>()) throw std::bad_cast();
             return *toPtr<ValueType>();
         }
@@ -105,39 +121,49 @@ private:
         class PlaceHolder {
         public:
             virtual ~PlaceHolder() {}
-            virtual const std::type_info& type_info() const = 0;
-            virtual PlaceHolder* clone() const = 0;
+
+            virtual const std::type_info &type_info() const = 0;
+
+            virtual PlaceHolder *clone() const = 0;
         };
+
         // Inner template concrete instantiation of PlaceHolder
-        template <typename ValueType>
+        template<typename ValueType>
         class Holder : public PlaceHolder {
         public:
             ValueType held_;
-            Holder(const ValueType& value) : held_(value) {}
-            virtual const std::type_info& type_info() const { return typeid(ValueType); }
-            virtual PlaceHolder* clone() const { return new Holder(held_); }
+
+            Holder(const ValueType &value) : held_(value) {}
+
+            virtual const std::type_info &type_info() const { return typeid(ValueType); }
+
+            virtual PlaceHolder *clone() const { return new Holder(held_); }
         };
-        PlaceHolder* content;
+
+        PlaceHolder *content;
     };
 
     // --------------------------------------------------------------------------
     // Argument
     // --------------------------------------------------------------------------
-    static String delimit(const String& name) {
-        return String(std::min(name.size(), (size_t)2), '-').append(name);
+    static String delimit(const String &name) {
+        return String(std::min(name.size(), (size_t) 2), '-').append(name);
     }
-    static String strip(const String& name) {
+
+    static String strip(const String &name) {
         size_t begin = 0;
         begin += name.size() > 0 ? name[0] == '-' : 0;
         begin += name.size() > 3 ? name[1] == '-' : 0;
         return name.substr(begin);
     }
-    static String upper(const String& in) {
+
+    static String upper(const String &in) {
         String out(in);
         std::transform(out.begin(), out.end(), out.begin(), ::toupper);
         return out;
     }
-    static String escape(const String& in) {
+
+    static String escape(const String &in) {
         String out(in);
         if (in.find(' ') != std::string::npos) out = String("\"").append(out).append("\"");
         return out;
@@ -145,7 +171,8 @@ private:
 
     struct Argument {
         Argument() : short_name(""), name(""), optional(true), fixed_nargs(0), fixed(true) {}
-        Argument(const String& _short_name, const String& _name, bool _optional, char nargs)
+
+        Argument(const String &_short_name, const String &_name, bool _optional, char nargs)
                 : short_name(_short_name), name(_name), optional(_optional) {
             if (nargs == '+' || nargs == '*') {
                 variable_nargs = nargs;
@@ -155,6 +182,7 @@ private:
                 fixed = true;
             }
         }
+
         String short_name;
         String name;
         bool optional;
@@ -163,14 +191,16 @@ private:
             char variable_nargs;
         };
         bool fixed;
+
         String canonicalName() const { return (name.empty()) ? short_name : name; }
+
         String toString(bool named = true) const {
             std::ostringstream s;
             String uname = name.empty() ? upper(strip(short_name)) : upper(strip(name));
             if (named && optional) s << "[";
             if (named) s << canonicalName();
             if (fixed) {
-                size_t N = std::min((size_t)3, fixed_nargs);
+                size_t N = std::min((size_t) 3, fixed_nargs);
                 for (size_t n = 0; n < N; ++n) s << " " << uname;
                 if (N < fixed_nargs) s << " ...";
             }
@@ -186,7 +216,7 @@ private:
         }
     };
 
-    void insertArgument(const Argument& arg) {
+    void insertArgument(const Argument &arg) {
         size_t N = arguments_.size();
         arguments_.push_back(arg);
         if (arg.fixed && arg.fixed_nargs <= 1) {
@@ -202,7 +232,7 @@ private:
     // --------------------------------------------------------------------------
     // Error handling
     // --------------------------------------------------------------------------
-    void argumentError(const std::string& msg, bool show_usage = false) {
+    void argumentError(const std::string &msg, bool show_usage = false) {
         if (use_exceptions_) throw std::invalid_argument(msg);
         std::cerr << "ArgumentParser error: " << msg << std::endl;
         if (show_usage) std::cerr << usage() << std::endl;
@@ -223,11 +253,13 @@ private:
 
 public:
     ArgumentParser() : ignore_first_(true), use_exceptions_(false), required_(0) {}
+
     // --------------------------------------------------------------------------
     // addArgument
     // --------------------------------------------------------------------------
-    void appName(const String& name) { app_name_ = name; }
-    void addArgument(const String& name, char nargs = 0, bool optional = true) {
+    void appName(const String &name) { app_name_ = name; }
+
+    void addArgument(const String &name, char nargs = 0, bool optional = true) {
         if (name.size() > 2) {
             Argument arg("", verify(name), optional, nargs);
             insertArgument(arg);
@@ -236,18 +268,22 @@ public:
             insertArgument(arg);
         }
     }
-    void addArgument(const String& short_name, const String& name, char nargs = 0,
+
+    void addArgument(const String &short_name, const String &name, char nargs = 0,
                      bool optional = true) {
         Argument arg(verify(short_name), verify(name), optional, nargs);
         insertArgument(arg);
     }
-    void addFinalArgument(const String& name, char nargs = 1, bool optional = false) {
+
+    void addFinalArgument(const String &name, char nargs = 1, bool optional = false) {
         final_name_ = delimit(name);
         Argument arg("", final_name_, optional, nargs);
         insertArgument(arg);
     }
+
     void ignoreFirstArgument(bool ignore_first) { ignore_first_ = ignore_first; }
-    String verify(const String& name) {
+
+    String verify(const String &name) {
         if (name.empty()) argumentError("argument names must be non-empty");
         if ((name.size() == 2 && name[0] != '-') || name.size() == 3)
             argumentError(String("invalid argument '")
@@ -263,9 +299,9 @@ public:
     // --------------------------------------------------------------------------
     // Parse
     // --------------------------------------------------------------------------
-    void parse(size_t argc, const char** argv) { parse(StringVector(argv, argv + argc)); }
+    void parse(size_t argc, const char **argv) { parse(StringVector(argv, argv + argc)); }
 
-    void parse(const StringVector& argv) {
+    void parse(const StringVector &argv) {
         // check if the app is named
         if (app_name_.empty() && ignore_first_ && !argv.empty()) app_name_ = argv[0];
 
@@ -348,8 +384,8 @@ public:
     // --------------------------------------------------------------------------
     // Retrieve
     // --------------------------------------------------------------------------
-    template <typename T>
-    T& retrieve(const String& name) {
+    template<typename T>
+    T &retrieve(const String &name) {
         if (index_.count(delimit(name)) == 0) throw std::out_of_range("Key not found");
         size_t N = index_[delimit(name)];
         return variables_[N].castTo<T>();
@@ -412,8 +448,11 @@ public:
 
         return help.str();
     }
+
     void useExceptions(bool state) { use_exceptions_ = state; }
+
     bool empty() const { return index_.empty(); }
+
     void clear() {
         ignore_first_ = true;
         required_ = 0;
@@ -421,8 +460,10 @@ public:
         arguments_.clear();
         variables_.clear();
     }
-    bool exists(const String& name) const { return index_.count(delimit(name)) > 0; }
-    size_t count(const String& name) {
+
+    bool exists(const String &name) const { return index_.count(delimit(name)) > 0; }
+
+    size_t count(const String &name) {
         // check if the name is an argument
         if (index_.count(delimit(name)) == 0) return 0;
         size_t N = index_[delimit(name)];

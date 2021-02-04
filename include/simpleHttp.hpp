@@ -36,8 +36,7 @@ namespace http {
 
         void parseUrl(std::string &url);
 
-        std::map<std::string, std::string> parseHeaders(std::string& req);
-
+        std::map<std::string, std::string> parseHeaders(std::string &req);
 
 
         // ==== SETTERS & GETTERS ====
