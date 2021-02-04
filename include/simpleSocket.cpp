@@ -7,17 +7,23 @@ socket::Socket::Socket() {
     this->m_ssl_bio = nullptr;
     this->m_tls = false;
 
-    // Default connection bio that can be chained with 
-    // an SSL filter bio if needed
-    this->m_conn_bio = BIO_new(BIO_s_connect());
-
     // Ensure buffer is clear of any junk data before use
     memset(this->m_resp_buffer, 0, sizeof(this->m_resp_buffer));
+}
+
+socket::Socket::~Socket(){
+    BIO_free_all(this->m_conn_bio);
+    if (this->m_ctx != nullptr) {
+        SSL_CTX_free(this->m_ctx);
+    }
 }
 
 // Set up BIOs and chain if needed and get ready to read/write data
 void socket::Socket::connectTo(const std::string &host, const std::string &port) {
 
+    // Default connection bio that can be chained with
+    // an SSL filter bio if needed
+    this->m_conn_bio = BIO_new(BIO_s_connect());
     BIO_set_conn_hostname(this->m_conn_bio, fmt::format("{}:{}", host, port).c_str());
 
     if (this->m_tls) {
@@ -67,11 +73,4 @@ void socket::Socket::sendTo(const std::string &data) {
 
 }
 
-void socket::Socket::cleanup() {
 
-    BIO_free_all(this->m_conn_bio);
-    if (this->m_ctx != nullptr) {
-        SSL_CTX_free(this->m_ctx);
-    }
-
-}

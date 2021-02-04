@@ -28,11 +28,11 @@ namespace socket {
 
         void connectTo(const std::string &host, const std::string &port);
 
-        void cleanup();
 
 
         // Custom constructor
         Socket();
+        ~Socket();
 
         // ==== SETTERS & GETTERS ====
         const std::vector<uint8_t> &GetMResp() {

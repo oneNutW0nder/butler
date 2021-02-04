@@ -20,21 +20,25 @@ namespace http {
         std::string m_port;
         std::string m_body;
         std::string m_req;
+        std::string m_extra;
         std::map<std::string, std::string> m_otherHeaders;
 
         bool m_redirects = false;
         bool m_tls = false;
 
     public:
-        // Custom Constructor
-        Request(std::string host, std::string port);
-
         // Methods
         std::vector<uint8_t> sendRequest();
 
         void render();
 
-        void redirect();
+//        std::vector<std::string> parseHtml();
+
+        void parseUrl(std::string &url);
+
+        std::map<std::string, std::string> parseHeaders(std::string& req);
+
+
 
         // ==== SETTERS & GETTERS ====
         [[nodiscard]] const std::string &GetMReq() const {
