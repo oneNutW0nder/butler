@@ -17,8 +17,27 @@ int main(int argc, const char *argv[]) {
     myReq.sendRequest();
     myReq.parseResp();
 
-    // parse html response
+    // This regex was taken from: https://stackoverflow.com/questions/3809401/what-is-a-good-regular-expression-to-match-a-url
+    // and modified to fit my needs
+    auto unqRefs = myReq.parseHtml(
+            "(https?:)?(\\/\\/)(www\\.)?([-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b)([-a-zA-Z0-9()@:%_\\+.~#?&//=]*)");
 
+    // Remove URLs with the hostname in it
+    auto it = unqRefs.begin();
+    while (it != unqRefs.end()) {
+        if (it->find(myReq.GetMHost()) != std::string::npos) {
+            it = unqRefs.erase(it);
+        } else {
+            ++it;
+        }
+    }
+
+    // TODO: Make the output pretty for the grader :)
+    //       also check for an empty unqRefs
+    for (auto i : unqRefs) {
+        std::cout << i << std::endl;
+    }
+    std::cout << unqRefs.size() << std::endl;
 
     return 0;
 }
