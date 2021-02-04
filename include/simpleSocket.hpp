@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <iostream>
+#include <unordered_set>
 
 #include <openssl/bio.h>
 #include <openssl/ssl.h>
@@ -28,15 +29,14 @@ namespace socket {
 
         void connectTo(const std::string &host, const std::string &port);
 
-
         // Custom constructor
         Socket();
 
         ~Socket();
 
         // ==== SETTERS & GETTERS ====
-        [[nodiscard]] const std::vector<uint8_t> &GetMResp() {
-            return this->m_resp;
+        [[nodiscard]] const std::string GetMResp() {
+            return std::string (this->m_resp.begin(), this->m_resp.end());
         }
 
         [[nodiscard]] const bool &GetMTls() const {

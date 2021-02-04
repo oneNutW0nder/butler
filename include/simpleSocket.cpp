@@ -71,6 +71,8 @@ void socket::Socket::readFrom() {
 // Write data to BIOs
 void socket::Socket::sendTo(const std::string &data) {
 
+    // Connection BIOs will automatically attempt the connection when data
+    // is written to them. This is why no explicit connect call is made
     BIO_write(this->m_conn_bio, data.c_str(), data.length());
 
 }
