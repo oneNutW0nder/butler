@@ -133,7 +133,7 @@ void http::Request::parseResp() {
     if ((loc_x = this->m_resp.find("\r\n\r\n")) == std::string::npos) {
         this->m_resp_headers = {};
         this->m_resp_body = "";
-    }else{
+    } else {
         std::string tmp;
 
         while ((loc_x = this->m_resp.find("\r\n")) != std::string::npos) {
@@ -154,15 +154,19 @@ void http::Request::parseResp() {
 
 }
 
-std::unordered_set<std::string> http::Request::parseHtml(const std::string& rgx){
-//    std::regex search(rgx);
-//    std::smatch matches;
-//    if (std::regex_search(this->m_body, matches, rgx)) {
-//        std::cout << "Text contains the phrase 'regular expressions'\n";
-//        for (size_t i = 0; i < matches.size(); ++i) {
-//            if(matches[i].str().length() < 2) {
-//                std::cout << i << ": '" << matches[i].str() << "'\n";
-//            }
-//        }
-    return {};
+std::unordered_set<std::string> http::Request::parseHtml(const std::string &rgx) {
+
+    if (rgx.empty()) {
+        return {};
+    }
+
+    std::unordered_set<std::string> unqVals = {};
+    std::regex re(rgx, std::regex::ECMAScript);
+    for (std::sregex_iterator it = std::sregex_iterator(this->m_resp_body.begin(), this->m_resp_body.end(), re);
+         it != std::sregex_iterator(); it++) {
+        unqVals.insert(it->str(0));
+    }
+
+    return unqVals;
 }
+

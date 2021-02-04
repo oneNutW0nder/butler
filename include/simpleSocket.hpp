@@ -36,7 +36,7 @@ namespace socket {
 
         // ==== SETTERS & GETTERS ====
         [[nodiscard]] const std::string GetMResp() {
-            return std::string (this->m_resp.begin(), this->m_resp.end());
+            return std::string(this->m_resp.begin(), this->m_resp.end());
         }
 
         [[nodiscard]] const bool &GetMTls() const {
