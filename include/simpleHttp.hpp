@@ -6,6 +6,7 @@
 #include <vector>
 #include <map>
 #include <cstdint>
+#include <unordered_set>
 
 namespace http {
 
@@ -23,23 +24,35 @@ namespace http {
         std::string m_extra;
         std::map<std::string, std::string> m_otherHeaders;
 
+        std::map<std::string, std::string> m_resp_headers;
+        std::string m_resp_body;
+        std::string m_resp;
+
         bool m_redirects = false;
         bool m_tls = false;
 
     public:
         // Methods
-        std::vector<uint8_t> sendRequest();
+        void sendRequest();
 
         void render();
 
-//        std::vector<std::string> parseHtml();
-
         void parseUrl(std::string &url);
 
-        std::map<std::string, std::string> parseHeaders(std::string &req);
+        void parseResp();
+
+        std::unordered_set<std::string> parseHtml(const std::string &rgx);
 
 
         // ==== SETTERS & GETTERS ====
+        [[nodiscard]] const std::string &GetMRespBody() const {
+            return this->m_resp_body;
+        }
+
+        [[nodiscard]] const std::map<std::string, std::string> &GetMRespHeaders() const {
+            return this->m_resp_headers;
+        }
+
         [[nodiscard]] const std::string &GetMReq() const {
             return this->m_req;
         }

@@ -1,6 +1,9 @@
 #include "simpleHttp.hpp"
 #include "simpleSocket.hpp"
 #include "util.hpp"
+
+#include <regex>
+
 #include <fmt/core.h>
 
 
@@ -30,14 +33,14 @@ void http::Request::render() {
 }
 
 // Sends request
-std::vector<uint8_t> http::Request::sendRequest() {
+void http::Request::sendRequest() {
 
     socket::Socket sock = socket::Socket();
     sock.SetMTls(this->m_tls);
     sock.connectTo(this->m_host, this->m_port);
     sock.sendTo(this->m_req);
     sock.readFrom();
-    return sock.GetMResp();
+    this->m_resp = sock.GetMResp();
 
     // TODO: Figure out handling redirects...
     //       saving code below
@@ -121,31 +124,45 @@ void http::Request::parseUrl(std::string &url) {
 
 }
 
-std::map<std::string, std::string> http::Request::parseHeaders(std::string &req) {
+void http::Request::parseResp() {
 
     int loc_x;
     int loc_y;
 
     // Return an empty map if we don't find the end of the headers
-    if ((loc_x = req.find("\r\n\r\n")) == std::string::npos) {
-        return {};
-    }
+    if ((loc_x = this->m_resp.find("\r\n\r\n")) == std::string::npos) {
+        this->m_resp_headers = {};
+        this->m_resp_body = "";
+    }else{
+        std::string tmp;
 
-    std::map<std::string, std::string> headers;
-    std::string tmp;
+        while ((loc_x = this->m_resp.find("\r\n")) != std::string::npos) {
+            // End the loop when we reach the \r\n\r\n
+            if (loc_x == 0) {
+                this->m_resp = ltrim(this->m_resp, "\r\n");
+                this->m_resp_body = this->m_resp;
+                break;
+            }
+            tmp = this->m_resp.substr(0, loc_x);
+            loc_y = tmp.find(" ");
+            this->m_resp_headers[tmp.substr(0, loc_y)] = tmp.substr(loc_y + 1, tmp.length() - 2);
 
-    while ((loc_x = req.find("\r\n")) != std::string::npos) {
-        // End the loop when we reach the \r\n\r\n
-        if (loc_x == 0) {
-            break;
+            this->m_resp = ltrim(this->m_resp, tmp.append("\r\n"));
         }
-        tmp = this->m_req.substr(0, loc_x);
-        loc_y = tmp.find(" ");
-        headers[tmp.substr(0, loc_y)] = tmp.substr(loc_y + 1, tmp.length() - 2);
-
-        this->m_req = ltrim(req, tmp.append("\r\n"));
     }
 
-    return headers;
+
 }
 
+std::unordered_set<std::string> http::Request::parseHtml(const std::string& rgx){
+//    std::regex search(rgx);
+//    std::smatch matches;
+//    if (std::regex_search(this->m_body, matches, rgx)) {
+//        std::cout << "Text contains the phrase 'regular expressions'\n";
+//        for (size_t i = 0; i < matches.size(); ++i) {
+//            if(matches[i].str().length() < 2) {
+//                std::cout << i << ": '" << matches[i].str() << "'\n";
+//            }
+//        }
+    return {};
+}
