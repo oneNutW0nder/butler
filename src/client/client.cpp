@@ -1,7 +1,6 @@
 #include <iostream>
 #include "simpleHttp.hpp"
 #include "argparse.hpp"
-#include <map>
 
 int main(int argc, const char *argv[]) {
 
