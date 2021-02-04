@@ -1,5 +1,4 @@
 #include "util.hpp"
-#include <regex>
 
 // trim from end of string (right)
 std::string &rtrim(std::string &s, const std::string &t) {
