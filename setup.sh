@@ -5,4 +5,4 @@ sudo apt update && sudo apt upgrade -y
 sudo snap install cmake --classic
 
 # Install libs
-sudo apt install -y make libssl-dev libfmt-dev gcc build-essential
+sudo apt install -y make libssl-dev gcc build-essential
