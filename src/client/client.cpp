@@ -14,8 +14,16 @@
  */
 
 #include <iostream>
+#include <iomanip>
 #include "simpleHttp.hpp"
 #include "argparse.hpp"
+
+void prettyLine(size_t val){
+    for(val; val > 0; val--){
+        std::cout << "=";
+    }
+    std::cout << std::endl;
+}
 
 int main(int argc, const char *argv[]) {
 
@@ -47,12 +55,19 @@ int main(int argc, const char *argv[]) {
         }
     }
 
+    std::string banner = "========== EXTERNAL REFERENCES FOR " + myReq.GetMHost() + " ==========\n";
+
+    prettyLine(banner.length()-1);
+    std::cout << banner;
+    prettyLine(banner.length()-1);
+
     // TODO: Make the output pretty for the grader :)
     //       also check for an empty unqRefs
     for (auto i : unqRefs) {
         std::cout << i << std::endl;
     }
-    std::cout << unqRefs.size() << std::endl;
+    prettyLine(banner.length());
+    std::cout << "Total Unique External References: " << unqRefs.size() << std::endl;
 
     return 0;
 }
