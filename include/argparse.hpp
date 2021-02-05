@@ -1,7 +1,6 @@
-//
-// Created by simon on 2/3/21.
-//
-
+/**
+ * https://github.com/hbristow/argparse
+ */
 
 #ifndef ARGPARSE_HPP_
 #define ARGPARSE_HPP_

@@ -1,3 +1,11 @@
+/**
+ * Name:    Simon Buchheit
+ * Email:   scb5436@rit.edu
+ * File:    simpleHttp.cpp
+ *
+ * Implementation functions for the http::Request class.
+ */
+
 #include "simpleHttp.hpp"
 #include "simpleSocket.hpp"
 #include "util.hpp"
@@ -6,7 +14,12 @@
 
 #include <fmt/core.h>
 
-
+/**
+ * Builds a value HTTP/1.1 request given the values of the
+ * member variables.
+ *
+ * Stores the resulting request in `m_req`
+ */
 void http::Request::render() {
 
     // Clear out this->m_req to ensure a clean request is built each time
@@ -32,7 +45,11 @@ void http::Request::render() {
 
 }
 
-// Sends request
+/**
+ * Creates a connection using the socket::Socket class
+ * which can be found in `simpleSocket.hpp/cpp`. The HTTP/1.1
+ * request is sent, the response read and saved in `m_resp`.
+ */
 void http::Request::sendRequest() {
 
     socket::Socket sock = socket::Socket();
@@ -73,13 +90,20 @@ void http::Request::sendRequest() {
 
 }
 
+/**
+ * Takes a URL and splits it into its respective parts.
+ * Parts are the saved to the matching member vairables.
+ *
+ * @param url --> A valid URL such as `http(s)://www.rit.edu`
+ *
+ * Note: It is up to the user to provide a valid URL
+ */
 void http::Request::parseUrl(std::string &url) {
 
     std::string scheme;
     std::string host;
     std::string port;
     std::string path;
-    std::string other;
 
     int loc;
 
@@ -124,6 +148,11 @@ void http::Request::parseUrl(std::string &url) {
 
 }
 
+/**
+ * Can be used after sending a request to get a map of response headers
+ * and the response body. Headers will be stored in `m_resp_headers` and
+ * the body in `m_resp_body`.
+ */
 void http::Request::parseResp() {
 
     int loc_x;
@@ -154,6 +183,12 @@ void http::Request::parseResp() {
 
 }
 
+/**
+ * Can be used on the body of a response with a given regex expression.
+ *
+ * @param rgx --> A regex expression that follows the EMCAScript standard
+ * @return --> A set of matches for the regex
+ */
 std::unordered_set<std::string> http::Request::parseHtml(const std::string &rgx) {
 
     if (rgx.empty()) {

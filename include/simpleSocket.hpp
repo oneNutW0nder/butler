@@ -11,15 +11,25 @@
 
 namespace socket {
 
+    /**
+     * Used to make connections and send data.
+     *
+     * Example usage:
+     *  Socket mysock = Socket();
+     *  mysock.SetMTls(true);
+     *  mysock.connectTo("www.rit.edu", "443");
+     *  mysock.sendTo(httpRequest);
+     *  mysock.readFrom();
+     */
     class Socket {
 
     private:
 
-        SSL_CTX *m_ctx = nullptr;
-        BIO *m_ssl_bio = nullptr;
+        SSL_CTX *m_ctx;
+        BIO *m_ssl_bio;
         BIO *m_conn_bio;
         char m_resp_buffer[1030];
-        bool m_tls = false;
+        bool m_tls;
         std::vector<uint8_t> m_resp;
 
     public:

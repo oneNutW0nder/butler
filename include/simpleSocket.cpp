@@ -1,9 +1,18 @@
+/**
+ * Name:    Simon Buchheit
+ * Email:   scb5436@rit.edu
+ * File:    simpleSocket.cpp
+ *
+ * Contains implementation functions for socket::Socket class.
+ */
+
 #include "simpleSocket.hpp"
 #include <cstring>
 #include <fmt/core.h>
 
 socket::Socket::Socket() {
     this->m_ctx = nullptr;
+    this->m_conn_bio = nullptr;
     this->m_ssl_bio = nullptr;
     this->m_tls = false;
 
@@ -20,7 +29,13 @@ socket::Socket::~Socket() {
     }
 }
 
-// Set up BIOs and chain if needed and get ready to read/write data
+/**
+ * Using openssl's BIOs, open a connection to `host:port` and wrap the
+ * connection with TLS if needed.
+ *
+ * @param host --> Example: `www.rit.edu`
+ * @param port --> Example: `http` or `80` (will match any service in /etc/services)
+ */
 void socket::Socket::connectTo(const std::string &host, const std::string &port) {
 
     // Default connection bio that can be chained with
@@ -47,8 +62,9 @@ void socket::Socket::connectTo(const std::string &host, const std::string &port)
     }
 }
 
-
-// Read data from BIOs
+/**
+ * Receive data from a connection. Specifically set up for HTTP responses.
+ */
 void socket::Socket::readFrom() {
 
     int cutoff = 1030;
@@ -68,7 +84,9 @@ void socket::Socket::readFrom() {
 
 }
 
-// Write data to BIOs
+/**
+ * @param data --> Example: "my data I want to send over the connection"
+ */
 void socket::Socket::sendTo(const std::string &data) {
 
     // Connection BIOs will automatically attempt the connection when data

@@ -1,3 +1,18 @@
+/**
+ * Name:    Simon Buchheit
+ * Email:   scb5436@rit.edu
+ * File:    client.cpp
+ *
+ * This application makes a request to a URL provided by the user.
+ * It based on the response it will perform a regex operation
+ * on the response body which will match URLs. The list of URLs
+ * matched by the regex is filtered down to only be URLs that do not
+ * go to the same host.
+ *
+ * Example: input(https://www.rit.edu)
+ *          output(URLs not of host `www.rit.edu`)
+ */
+
 #include <iostream>
 #include "simpleHttp.hpp"
 #include "argparse.hpp"

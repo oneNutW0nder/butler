@@ -9,8 +9,19 @@
 #include <unordered_set>
 
 namespace http {
-
     class Request {
+
+        /**
+         *  Allows building, sending, and parsing of
+         *  HTTP requests and responses.
+         *
+         *  Example usage:
+         *      auto myReq = http::Request();
+         *      myReq.parseUrl("https://www.rit.edu")
+         *      myReq.render();
+         *      myreq.sendRequest();
+         *      myreq.parseResp();
+         */
     private:
         std::string m_method = "GET";
         std::string m_path = "/";
