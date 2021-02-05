@@ -61,8 +61,6 @@ int main(int argc, const char *argv[]) {
     std::cout << banner;
     prettyLine(banner.length()-1);
 
-    // TODO: Make the output pretty for the grader :)
-    //       also check for an empty unqRefs
     for (auto i : unqRefs) {
         std::cout << i << std::endl;
     }
