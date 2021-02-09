@@ -12,3 +12,4 @@ add_library(util SHARED include/util.cpp)
 add_library(argparse INTERFACE include/argparse.hpp)
 
 add_subdirectory(src/client)
+add_subdirectory(src/server/parser)

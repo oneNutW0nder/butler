@@ -1,1 +1,8 @@
-// This will be the parser for hmwk 2
+#include <iostream>
+
+// Validate GET
+
+int main(){
+    std::cout << "parser!" << std::endl;
+    return 0;
+}
