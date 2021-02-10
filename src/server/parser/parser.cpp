@@ -5,6 +5,8 @@
 
 #include "argparse.hpp"
 #include "simpleHttp.hpp"
+#include "util.hpp"
+#include "httpParser.hpp"
 
 // Used in the switch case
 enum Methods{
@@ -16,13 +18,25 @@ enum Methods{
     Delete
 };
 
-void gotError(const std::string &msg, const int &err){
-    std::cerr << msg << std::endl;
-    exit(err);
-}
+
 
 void validate(std::string &request){
-    std::cout << request << std::endl;
+
+    // Search for double \r\n\r\n for quick invalidation
+    if (request.find("\r\n\r\n") == std::string::npos){
+        gotError("400 BAD REQUEST", 10);
+    }
+
+
+    // Handle the request line
+    int loc;
+    if((loc = request.find("\r\n")) == std::string::npos){
+        gotError("400 BAD REQUEST", 11);
+    }
+
+    // TODO: might need to send the \r\n for validation
+    auto reqParser = httpParser::httpParser(request);
+//    validateRequestLine(request.substr(0, loc));
 }
 
 int main(int argc, const char* argv[]){
@@ -53,8 +67,6 @@ int main(int argc, const char* argv[]){
 
     // Grab the method really quick
     fd >> method;
-    std::cout << method << std::endl;
-    std::cout << method_map[method] << std::endl;
     fd.seekg(0);
 
     switch (method_map[method]) {
