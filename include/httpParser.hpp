@@ -2,13 +2,23 @@
 // Created by simon on 2/9/2021.
 //
 
-#ifndef BUTLER_CLIENT_HTTPPARSER_H
-#define BUTLER_CLIENT_HTTPPARSER_H
+#ifndef BUTLER_CLIENT_HTTPPARSER_HPP
+#define BUTLER_CLIENT_HTTPPARSER_HPP
+
+#include <vector>
+#include <string>
+
+namespace httpParser{
+    class httpParser {
+    private:
+    public:
+        httpParser(std::string request);
+        std::vector<std::string> split(std::string &s, std::string delim);
+        bool validateRequestLine(std::string reqLine);
+        bool validateRequestTarget(std::string reqTarget);
+    };
+}
 
 
-class httpParser {
 
-};
-
-
-#endif //BUTLER_CLIENT_HTTPPARSER_H
+#endif //BUTLER_CLIENT_HTTPPARSER_HPP
