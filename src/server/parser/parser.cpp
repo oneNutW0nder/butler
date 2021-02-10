@@ -22,21 +22,8 @@ enum Methods{
 
 void validate(std::string &request){
 
-    // Search for double \r\n\r\n for quick invalidation
-    if (request.find("\r\n\r\n") == std::string::npos){
-        gotError("400 BAD REQUEST", 10);
-    }
-
-
-    // Handle the request line
-    int loc;
-    if((loc = request.find("\r\n")) == std::string::npos){
-        gotError("400 BAD REQUEST", 11);
-    }
 
     // TODO: might need to send the \r\n for validation
-    auto reqParser = httpParser::httpParser(request);
-//    validateRequestLine(request.substr(0, loc));
 }
 
 int main(int argc, const char* argv[]){
@@ -71,17 +58,17 @@ int main(int argc, const char* argv[]){
 
     switch (method_map[method]) {
         case Get:
-        case Head:
+        case Head: // Extra method of my choice
         case Post:
         case Put:
-        case Delete:
+        case Delete: {
             fd.seekg(0, std::ios::end);
             contents.resize(fd.tellg());
             fd.seekg(0, std::ios::beg);
             fd.read(&contents[0], contents.size());
-            validate(contents);
+            auto myValid = httpParser::Validator(contents);
             break;
-        // TODO: Probably have to add CONNECT support here too
+        }
         default:
             gotError("400 BAD REQUEST", 99);
             break;
