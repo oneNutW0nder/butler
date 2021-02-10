@@ -9,10 +9,10 @@
 #include <string>
 
 namespace httpParser{
-    class httpParser {
+    class Validator {
     private:
     public:
-        httpParser(std::string request);
+        explicit Validator(std::string &request);
         std::vector<std::string> split(std::string &s, std::string delim);
         bool validateRequestLine(std::string reqLine);
         bool validateRequestTarget(std::string reqTarget);

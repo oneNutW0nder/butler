@@ -7,12 +7,29 @@
 #include "util.hpp"
 
 // parser class takes a full request and parses everything
-httpParser::httpParser::httpParser(std::string request){
+httpParser::Validator::Validator(std::string &request){
+    try{
+        // Search for double \r\n\r\n for quick invalidation
+        if (request.find("\r\n\r\n") == std::string::npos){
+            gotError("400 BAD REQUEST", 10);
+        }
+
+        // Handle the request line
+        int loc;
+        if((loc = request.find("\r\n")) == std::string::npos){
+            gotError("400 BAD REQUEST", 11);
+        }
+
+        validateRequestLine(request.substr(0, loc));
+
+    }catch(...){
+        gotError("500 INTERNAL SERVER ERROR", 500);
+    }
 
 }
 
 // pass string and get vector back of elements split by delim
-std::vector<std::string> httpParser::httpParser::split(std::string &s, std::string delim){
+std::vector<std::string> httpParser::Validator::split(std::string &s, std::string delim){
     int loc;
     std::vector<std::string> tokens;
     while(!s.empty()){
@@ -28,7 +45,7 @@ std::vector<std::string> httpParser::httpParser::split(std::string &s, std::stri
     return tokens;
 }
 
-bool httpParser::httpParser::validateRequestTarget(std::string reqTarget){
+bool httpParser::Validator::validateRequestTarget(std::string reqTarget){
     // origin-form    = absolute-path [ "?" query ]
     // absolute-path = 1*( "/" segment ) --> We only need to check for the "/*"
     // absolute-form  = absolute-URI --> Must accept but only for proxies
@@ -37,7 +54,7 @@ bool httpParser::httpParser::validateRequestTarget(std::string reqTarget){
     return true;
 }
 
-bool httpParser::httpParser::validateRequestLine(std::string reqLine) {
+bool httpParser::Validator::validateRequestLine(std::string reqLine) {
     // From RFC 7230
     // request-line   = method SP request-target SP HTTP-version CRLF
     //                    *                                       *
