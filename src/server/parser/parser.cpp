@@ -4,7 +4,6 @@
 #include <map>
 
 #include "argparse.hpp"
-#include "simpleHttp.hpp"
 #include "util.hpp"
 #include "httpParser.hpp"
 
@@ -18,13 +17,6 @@ enum Methods{
     Delete
 };
 
-
-
-void validate(std::string &request){
-
-
-    // TODO: might need to send the \r\n for validation
-}
 
 int main(int argc, const char* argv[]){
 
