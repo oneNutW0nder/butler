@@ -47,11 +47,29 @@ std::vector<std::string> httpParser::Validator::split(std::string &s, std::strin
 
 bool httpParser::Validator::validateRequestTarget(std::string reqTarget){
     // origin-form    = absolute-path [ "?" query ]
-    // absolute-path = 1*( "/" segment ) --> We only need to check for the "/*"
+    //                  absolute-path = 1*( "/" segment ) --> We only need to check for the "/*"
     // absolute-form  = absolute-URI --> Must accept but only for proxies
-    // authority-form = authority --> Only used in CONNECT
-    // asterisk-form  = "*" --> Only used in OPTIONS
-    return true;
+    // authority-form = authority --> Only used in CONNECT **NOT USED**
+    // asterisk-form  = "*" --> Only used in OPTIONS **NOT USED**
+
+    // Quick check for single "/" (origin-form)
+    // TODO: this feels like such a cheep check
+    if (reqTarget.find("/") == 0 && reqTarget.size() >= 1){
+        return true;
+    }
+
+    // Absolute-form
+    // Must be absolute-URI (http|s://lots.more.text.here/)
+    if (reqTarget.find("http://") != std::string::npos ||
+        reqTarget.find("https://") != std::string::npos){
+        // Ensure more text than just the schemes
+        // 10 --> len(http://a.a)
+        if (reqTarget.size() >= 10){
+            return true;
+        }
+    }
+    // Assume false otherwise
+    return false;
 }
 
 bool httpParser::Validator::validateRequestLine(std::string reqLine) {
@@ -64,7 +82,7 @@ bool httpParser::Validator::validateRequestLine(std::string reqLine) {
 
     auto tokens = split(reqLine, " ");
     for (auto i : tokens){
-        std::cout << i << " : " << i.length()<< std::endl;
+        std::cout << i << " : " << i.length() << std::endl;
     }
 
     // There should only be 3 fields contained in the request Line
@@ -73,6 +91,9 @@ bool httpParser::Validator::validateRequestLine(std::string reqLine) {
     }
 
     // Validate request target
+    if (!validateRequestTarget(tokens[1])){
+        gotError("400 BAD REQUEST", 21);
+    }
 
     // Validate HTTP version
     // TODO: Not sure about hard checking the version
