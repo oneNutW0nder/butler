@@ -11,7 +11,6 @@
 // parser class takes a full request and parses everything
 httpParser::Validator::Validator(std::string &request){
     try{
-        std::cout << request << std::endl;
         // Search for double \r\n\r\n for quick invalidation
         if (request.find("\r\n\r\n") == std::string::npos){
             gotError("400 BAD REQUEST", 10);
@@ -49,6 +48,8 @@ void httpParser::Validator::validateHeaders(std::string s) {
     int loc_x;
     int loc_y;
     std::string tmp;
+    std::string tmp_header;
+
 
     while ((loc_x = s.find("\r\n")) != std::string::npos){
         // Stop grabbing headers when we reach \r\n\r\n
@@ -60,42 +61,100 @@ void httpParser::Validator::validateHeaders(std::string s) {
 
         tmp = s.substr(0, loc_x);
         loc_y = tmp.find(':');
+        // Lowercase the potential header
+        tmp_header = tmp.substr(0, loc_y);
+        std::transform(tmp_header.begin(), tmp_header.end(), tmp_header.begin(), ::tolower);
+
+        // Check for double host header
+        if (tmp_header == "host"){
+            if (this->m_seenHost){
+                gotError("400 BAD REQUEST", 31);
+            }else{
+                this->m_seenHost = true;
+            }
+        }
+
+        std::cout << tmp_header << std::endl;
+
         this->m_headers[tmp.substr(0, loc_y)] = tmp.substr(loc_y + 1, tmp.length()-2);
         s = ltrim(s, tmp.append("\r\n"));
     }
 
     // Complete validation
     std::string lowerHeader;
-    for (auto i : this->m_headers){
+    bool seenHost = false;
+    for (const auto& i : this->m_headers){
         // Get lower version for case insensitivity
+        std::cout << i.first << " -- " << i.second << std::endl;
         lowerHeader.resize(i.first.size());
         std::transform(i.first.begin(), i.first.end(), lowerHeader.begin(), ::tolower);
 
         // No spaces allowed in header-value
         if (i.first.find(" ") != std::string::npos){
-            gotError("400 BAD REQUEST", 31);
+            gotError("400 BAD REQUEST", 32);
         }
 
         // No delimeters allowed in header value
         if (i.first.find_first_of(DELIMETERS) != std::string::npos){
-            std::cout << i.first << std::endl;
-            gotError("400 BAD REQUEST", 32);
+            gotError("400 BAD REQUEST", 33);
         }
 
         // Search for "Host:" header
+        // Double host header is account for by virtue of using a MAP
         if (lowerHeader == "host"){
+            this->m_seenHost = true;
             this->m_host = i.second;
         }
 
-        if (i.first == "content-type"){
+        if (lowerHeader == "content-type"){
             this->m_content_type = i.second;
         }
 
-        if (i.first == "content-length"){
+        if (lowerHeader == "content-length"){
             this->m_content_length = std::stoi(i.second);
         }
 
+        if (lowerHeader == "transfer-encoding"){
+            this->m_transfer_encoding = true;
+        }
+
+        // Used for rejecting PUT
+        if (lowerHeader == "content-range"){
+            this->m_content_range = true;
+        }
+
     }
+
+    // Host header required
+    if (!this->m_seenHost && !this->m_host.empty()){
+        gotError("400 BAD REQUEST", 34);
+    }
+
+    // TODO: match host header value to the server name
+
+    // Do not allow both transfer-encoding and content-length
+    if (this->m_transfer_encoding && this->m_content_length != -1){
+        gotError("400 BAD REQUEST", 35);
+    }
+
+    // Do body checking for methods and content-length
+    if (!this->m_body.empty()){
+        // 400 if there is a body on a GET or HEAD or DELETE request
+        if (this->m_method == "GET" || this->m_method == "HEAD" || this->m_method == "DELETE"){
+            gotError("400 BAD REQUEST", 36);
+        }
+        else if (this->m_content_length != this->m_body.size()){
+            gotError("411 LENGTH REQUIRED", 37);
+        }
+    }
+
+    // Content-range header not allowed with PUT
+    if (this->m_method == "PUT" && this->m_content_range){
+        gotError("400 BAD REQUEST", 38);
+    }
+
+    //
+
 
 }
 

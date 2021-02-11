@@ -13,6 +13,7 @@
 
 namespace httpParser{
     class Validator {
+
     private:
         std::string m_method;
         std::string m_req_target;
@@ -22,8 +23,12 @@ namespace httpParser{
 
         int m_content_length = -1;
         std::string m_content_type;
+        bool m_transfer_encoding;
+        bool m_content_range;
+        bool m_seenHost = false;
 
         std::map<std::string, std::string> m_headers;
+
     public:
         explicit Validator(std::string &request);
 
