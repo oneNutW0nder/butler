@@ -35,4 +35,24 @@ std::vector<std::string> split(std::string &s, std::string delim){
 }
 
 
+// Trims leading and trailing whitespace and tabs
+std::string trimSpace(std::string str){
+
+    int leftidx;
+    int rightidx;
+
+    // left trim
+    if ((leftidx = str.find_first_not_of(" \t")) != std::string::npos){
+        str.erase(0, leftidx);
+    }
+
+    // right trim
+    if ((rightidx = str.find_first_of(" \t")) != std::string::npos){
+        str.erase(rightidx, str.size());
+    }
+
+    return str;
+}
+
+
 
