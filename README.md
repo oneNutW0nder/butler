@@ -26,9 +26,25 @@ mkdir build
 cd build
 cmake ..
 make
-./bin/client https://www.rit.edu
 ```
 
-This will build the project and use the HTTP client to make a request to `https://www.rit.edu`
+The commands above will compile both the `client` and `parser` binaries. In order to compile just the one you like do the following:
 
+**Client**
+```
+mkdir build; # if you haven't made this directory already
+cd build;    # if you aren't already in the ./build directory
+cmake ..;    # if you haven't created the make file yet
+make client
+./bin/client <URL>
+```
+
+**Parser**
+```
+mkdir build; # if you haven't made this directory already
+cd build;    # if you aren't already in the ./build directory
+cmake ..;    # if you haven't created the make file yet
+make parser
+./bin/parser <path_to_file_containing_http_request>
+```
     
