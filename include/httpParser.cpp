@@ -1,6 +1,3 @@
-//
-// Created by simon on 2/9/2021.
-//
 #include <iostream>
 #include <algorithm>
 #include <string>
@@ -8,7 +5,13 @@
 #include "httpParser.hpp"
 #include "util.hpp"
 
-// parser class takes a full request and parses everything
+/**
+ * Constructor handles validating a raw request. It will try to validate
+ * the given request and catch any exceptions. If an exception occurs it will
+ * generate a HTTP 500 error message.
+ *
+ * @param request --> The raw request including all parts
+ */
 httpParser::Validator::Validator(std::string &request){
     try{
         // Search for double \r\n\r\n for quick invalidation
@@ -39,6 +42,12 @@ httpParser::Validator::Validator(std::string &request){
 
 }
 
+/**
+ * Handles the validation of the request headers. There are many attempts
+ * to follow the RFC (2616/7230/7231) in here.
+ *
+ * @param s
+ */
 void httpParser::Validator::validateHeaders(std::string s) {
     // Collect all the headers
     // Check for quick exit condition
@@ -52,6 +61,7 @@ void httpParser::Validator::validateHeaders(std::string s) {
     std::string tmp_header;
 
 
+    // Grab all the headers one line at a time
     while ((loc_x = s.find("\r\n")) != std::string::npos){
         // Stop grabbing headers when we reach \r\n\r\n
         if (loc_x == 0) {
@@ -103,20 +113,24 @@ void httpParser::Validator::validateHeaders(std::string s) {
 
         // Verify Host header is not empty
         if (lowerHeader == "host"){
-            if (i.second.empty()){
+            if (trimmedVal.empty()){
                 gotError("HTTP/1.1 400 BAD REQUEST", 34);
             }
             this->m_host = trimmedVal;
         }
 
+        // Save content-type for later processing
         if (lowerHeader == "content-type"){
             this->m_content_type = trimmedVal;
         }
 
+        // Save content length for later checking
+        // This can throw an exception if std::stoi() fails to convert
         if (lowerHeader == "content-length"){
             this->m_content_length = std::stoi(trimmedVal);
         }
 
+        // See if there is transfer-encoding header
         if (lowerHeader == "transfer-encoding"){
             this->m_transfer_encoding = true;
         }
@@ -131,6 +145,14 @@ void httpParser::Validator::validateHeaders(std::string s) {
     // Host header required
     if (!this->m_seenHost && !this->m_host.empty()){
         gotError("HTTP/1.1 400 BAD REQUEST", 35);
+    }
+
+    // Host header val must be in an absolute URI
+    // This is heavily exploitable
+    if (this->m_absolute_uri){
+        if (this->m_req_target.find(this->m_host) == std::string::npos){
+            gotError("HTTP/1.1 400 BAD REQUEST", 40);
+        }
     }
 
     // TODO: match host header value to the server name
@@ -157,16 +179,17 @@ void httpParser::Validator::validateHeaders(std::string s) {
         gotError("HTTP/1.1 400 BAD REQUEST", 39);
     }
 
-    // TODO: I might need more stuff here idk rn...
-    if (this->m_absolute_uri){
-        if (this->m_req_target.find(this->m_host) == std::string::npos){
-            gotError("HTTP/1.1 400 BAD REQUEST", 40);
-        }
-    }
-
 }
 
 
+/**
+ * Validates specifically the "request-target" section of the "request-line".
+ * The only forms that are supported are "origin-form" and "absolute-form" because
+ * this server does not support the CONNECT or OPTIONS methods.
+ *
+ * @param reqTarget --> The string that represents the "request-target"
+ * @return --> True if valid :: False if not
+ */
 bool httpParser::Validator::validateRequestTarget(const std::string& reqTarget){
     // origin-form    = absolute-path [ "?" query ]
     //                  absolute-path = 1*( "/" segment ) --> We only need to check for the "/*"
@@ -198,12 +221,14 @@ bool httpParser::Validator::validateRequestTarget(const std::string& reqTarget){
     return false;
 }
 
+/**
+ * Handles the validation of the "request-line" of an HTTP request.
+ * This function will set the corresponding member values if all parts
+ * are found to be valid.
+ *
+ * @param reqLine --> String that represents the "request-line"
+ */
 void httpParser::Validator::validateRequestLine(std::string reqLine) {
-    // From RFC 7230
-    // request-line   = method SP request-target SP HTTP-version CRLF
-    //                    *                                       *
-    // A "*" means the field above has been validated so far during execution
-    // TODO: Might need to validate the \r\n as well
 
     auto tokens = split(reqLine, " ");
 
@@ -212,59 +237,25 @@ void httpParser::Validator::validateRequestLine(std::string reqLine) {
         gotError("HTTP/1.1 400 BAD REQUEST", 20);
     }
 
+    // Verify we support the method
+    std::vector<std::string> supported = {"GET", "HEAD", "POST", "PUT", "DELETE"};
+    if (std::find(supported.begin(), supported.end(), tokens[0]) == supported.end()){
+        gotError("HTTP/1.1 400 BAD REQUEST", 21);
+    }
+
     // Validate request target
     if (!validateRequestTarget(tokens[1])){
-        gotError("HTTP/1.1 400 BAD REQUEST", 21);
+        gotError("HTTP/1.1 400 BAD REQUEST", 22);
     }
 
     // Validate HTTP version
     // TODO: Not sure about hard checking the version
     if (tokens[2] != "HTTP/1.1"){
-        gotError("HTTP/1.1 400 BAD REQUEST", 21);
+        gotError("HTTP/1.1 400 BAD REQUEST", 23);
     }
 
     this->m_method = tokens[0];
     this->m_req_target = tokens[1];
     this->m_version = tokens[2];
-}
-
-const std::string &httpParser::Validator::getMMethod() const {
-    return m_method;
-}
-
-void httpParser::Validator::setMMethod(const std::string &mMethod) {
-    m_method = mMethod;
-}
-
-const std::string &httpParser::Validator::getMReqTarget() const {
-    return m_req_target;
-}
-
-void httpParser::Validator::setMReqTarget(const std::string &mReqTarget) {
-    m_req_target = mReqTarget;
-}
-
-const std::string &httpParser::Validator::getMVersion() const {
-    return m_version;
-}
-
-void httpParser::Validator::setMVersion(const std::string &mVersion) {
-    m_version = mVersion;
-}
-
-const std::string &httpParser::Validator::getMBody() const {
-    return m_body;
-}
-
-void httpParser::Validator::setMBody(const std::string &mBody) {
-    m_body = mBody;
-}
-
-const std::map<std::string, std::string> &httpParser::Validator::getMHeaders() const {
-    return m_headers;
-}
-
-void httpParser::Validator::setMHeaders(const std::map<std::string, std::string> &mHeaders) {
-    m_headers = mHeaders;
 }
 

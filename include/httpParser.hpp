@@ -1,7 +1,3 @@
-//
-// Created by simon on 2/9/2021.
-//
-
 #ifndef BUTLER_CLIENT_HTTPPARSER_HPP
 #define BUTLER_CLIENT_HTTPPARSER_HPP
 
@@ -12,6 +8,19 @@
 #define DELIMETERS "(),/:;<=>?@[\\]{}"
 
 namespace httpParser{
+    /**
+     * httpParser::Validator is used to validate the syntax of an HTTP/1.1
+     * request. The methods used in validation try to adhere to the rules of
+     * RFC 2616, 7230, and 7231.
+     *
+     * Usage:
+     *      std::string myrequest = getSomeRequest();
+     *      auto example = httpParser::Validator(myrequest);
+     *
+     * If the request is valid "example" will have member values set based on the
+     * request that was parsed. If the request is invalid, the current state is that
+     * the program will print an error message and exit.
+     */
     class Validator {
 
     private:
@@ -36,18 +45,6 @@ namespace httpParser{
         bool validateRequestTarget(const std::string &reqTarget);
         void validateRequestLine(std::string reqLine);
         void validateHeaders(std::string s);
-
-        [[nodiscard]] const std::string &getMMethod() const;
-        [[nodiscard]] const std::string &getMReqTarget() const;
-        [[nodiscard]] const std::string &getMVersion() const;
-        [[nodiscard]] const std::string &getMBody() const;
-        [[nodiscard]] const std::map<std::string, std::string> &getMHeaders() const;
-
-        void setMMethod(const std::string &mMethod);
-        void setMReqTarget(const std::string &mReqTarget);
-        void setMVersion(const std::string &mVersion);
-        void setMBody(const std::string &mBody);
-        void setMHeaders(const std::map<std::string, std::string> &mHeaders);
 
     };
 }
