@@ -38,7 +38,7 @@ int main(int argc, const char *argv[]) {
     myReq.render();
 
     myReq.sendRequest();
-    myReq.parseResp();
+    myReq.parseHttp(true);
 
     // This regex was taken from: https://stackoverflow.com/questions/3809401/what-is-a-good-regular-expression-to-match-a-url
     // and modified to fit my needs

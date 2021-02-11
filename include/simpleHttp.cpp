@@ -11,6 +11,7 @@
 #include "util.hpp"
 
 #include <regex>
+#include <map>
 
 #include <fmt/core.h>
 
@@ -153,15 +154,19 @@ void http::Request::parseUrl(std::string &url) {
  * and the response body. Headers will be stored in `m_resp_headers` and
  * the body in `m_resp_body`.
  */
-void http::Request::parseResp() {
+void http::Request::parseHttp(const bool resp) {
+
+    std::map<std::string, std::string> headers;
+    std::string body;
+
 
     int loc_x;
     int loc_y;
 
     // Return an empty map if we don't find the end of the headers
     if ((loc_x = this->m_resp.find("\r\n\r\n")) == std::string::npos) {
-        this->m_resp_headers = {};
-        this->m_resp_body = "";
+        headers = {};
+        body = "";
     } else {
         std::string tmp;
 
@@ -169,15 +174,24 @@ void http::Request::parseResp() {
             // End the loop when we reach the \r\n\r\n
             if (loc_x == 0) {
                 this->m_resp = ltrim(this->m_resp, "\r\n");
-                this->m_resp_body = this->m_resp;
+                body = this->m_resp;
                 break;
             }
             tmp = this->m_resp.substr(0, loc_x);
             loc_y = tmp.find(" ");
-            this->m_resp_headers[tmp.substr(0, loc_y)] = tmp.substr(loc_y + 1, tmp.length() - 2);
+            headers[tmp.substr(0, loc_y)] = tmp.substr(loc_y + 1, tmp.length() - 2);
 
             this->m_resp = ltrim(this->m_resp, tmp.append("\r\n"));
         }
+    }
+
+    // If it is not a response we go into server request parsing mode
+    if (resp){
+        this->m_resp_body = std::move(body);
+        this->m_resp_headers.merge(headers);
+    }else{
+        this->m_req_body = std::move(body);
+        this->m_req_headers.merge(headers);
     }
 
 

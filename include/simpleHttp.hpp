@@ -36,8 +36,10 @@ namespace http {
         std::map<std::string, std::string> m_otherHeaders;
 
         std::map<std::string, std::string> m_resp_headers;
+        std::map<std::string, std::string> m_req_headers;
         std::string m_resp_body;
-        std::string m_resp;
+        std::string m_req_body;
+        std::string m_resp; // TODO: maybe rename this
 
         bool m_redirects = false;
         bool m_tls = false;
@@ -50,7 +52,7 @@ namespace http {
 
         void parseUrl(std::string &url);
 
-        void parseResp();
+        void parseHttp(const bool resp);
 
         std::unordered_set<std::string> parseHtml(const std::string &rgx);
 
