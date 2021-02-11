@@ -85,8 +85,6 @@ void httpParser::Validator::validateHeaders(std::string s) {
             }
         }
 
-        std::cout << tmp_header << std::endl;
-
         this->m_headers[tmp.substr(0, loc_y)] = tmp.substr(loc_y + 1, tmp.length()-2);
         s = ltrim(s, tmp.append("\r\n"));
     }
