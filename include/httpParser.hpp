@@ -26,6 +26,7 @@ namespace httpParser{
         bool m_transfer_encoding;
         bool m_content_range;
         bool m_seenHost = false;
+        bool m_absolute_uri = false;
 
         std::map<std::string, std::string> m_headers;
 
