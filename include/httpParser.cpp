@@ -205,8 +205,8 @@ bool httpParser::Validator::validateRequestTarget(const std::string& reqTarget){
     // Absolute-form
     // Must be absolute-URI (http|s://lots.more.text.here/)
     // Only used for CONNECT method but still have to accept it
-    if (reqTarget.find("http://") != std::string::npos ||
-        reqTarget.find("https://") != std::string::npos){
+    if (reqTarget.find("http://") == 0 ||
+        reqTarget.find("https://") == 0){
         // Ensure more text than just the schemes
         // 10 --> len(http://a.a)
         if (reqTarget.size() >= 10){
