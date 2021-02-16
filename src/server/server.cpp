@@ -3,7 +3,12 @@
 //
 
 #include <iostream>
-#include <argparse.hpp>
+#include <fmt/format.h>
+#include <csignal>
+#include <unistd.h>
+
+#include "argparse.hpp"
+#include "simpleServer.hpp"
 
 int main(const int argc, const char *argv[]){
 
@@ -32,6 +37,29 @@ int main(const int argc, const char *argv[]){
     }
 
     // TODO: Configure and start the server
+    auto listenBio = server::UniquePtr<BIO>(BIO_new_accept(fmt::format("{}:{}", ip, port).c_str()));
+    if (BIO_do_accept(listenBio.get()) <= 0) {
+        server::ssl_errors(fmt::format("FATAL: Could not bind to {} on port {}... exiting", ip, port).c_str());
+    }
+
+    // Setup SIGINT handler to cleanly shutdown the server
+    static auto shutdown_server = [fd = BIO_get_fd(listenBio.get(), nullptr)]() {
+        std::cout << "Shutting down..." << std::endl;
+        close(fd);
+    };
+    signal(SIGINT, [](int) { shutdown_server(); });
+
+    // Start the server loop!
+    std::cout << "Waiting for connections!" << std::endl;
+    while (auto bio = server::new_connection(listenBio.get())){
+        try {
+            // TODO: Server handling / logic
+            std::cout << "Connection Received" << std::endl;
+        } catch (...) {
+            std::cerr << "errors lol" << std::endl;
+            // TODO: Print error message to console and possibly log file
+        }
+    }
 
     return 0;
 }
