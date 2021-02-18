@@ -59,39 +59,29 @@ int main(const int argc, const char *argv[]){
     std::cout << "Waiting for connections!" << std::endl;
     while (auto bio = server::new_connection(listenBio.get())){
         try {
+            // Read request and validate
             std::cout << "Connection Received" << std::endl;
             std::string req = server::receive_http_message(bio.get());
-            // TODO: Change things in VALIDATOR
+
+            // Validate and get resource/params
             auto valid = httpParser::Validator(req);
-            std::cout << "Valid Data received:" << std::endl;
-            std::cout << req << std::endl;
-            std::cout << valid.GetMMethod() << std::endl;
+            // TODO: finish param/resource parsing
+            std::vector<std::string> resources = server::parseResource(valid.GetMReqTarget(), valid.GetMAbsoluteUri());
 
-            std::string tmp = "HTTP/1.1 200 OK\r\nContent-Length: 9\r\n\r\nHi berber";
-            server::sendTo(bio.get(), tmp);
+            // TODO: switch on method type and do method things
 
-            // TODO: --> Feed request into parser
-            //       --> If parser is valid grab the requested resource and log to file
-            //       --> Serve request based on the method/resource
-            //       --> Respond with appropriate response
         }
         // Catch integers which represent error HTTP code
         catch (server::httpException& e) {
             //  TODO: Write server::response() to construct server responses
-            // HTTP/1.1 e.statusCode e.codemsg
-            std::string resp = "HTTP/1.1 ";
-            resp += std::to_string(e.GetMStatusCode());
-            resp += " ";
-            resp += e.GetMCodeMsg();
-            resp += "\r\n";
-            resp += "Content-Length: ";
-            resp += e.GetMErrMsg().length();
-            resp += "\r\n\r\n";
-            resp += e.GetMErrMsg();
+            auto resp = server::makeResponse(std::to_string(e.GetMStatusCode()), e.GetMCodeMsg(), e.GetMErrMsg());
             server::sendTo(bio.get(), resp);
         }
         // Catch all other exceptions and respond with 500 code
-        catch (...) { std::cerr << "all other errors lol" << std::endl; }
+        catch (...) {
+            auto resp = server::makeResponse("500", "Internal Server Error", "General Error");
+            server::sendTo(bio.get(), resp);
+        }
 
     }
 
