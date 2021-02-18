@@ -16,16 +16,12 @@
 httpParser::Validator::Validator(std::string &request){
         // Search for double \r\n\r\n for quick invalidation
         if (request.find("\r\n\r\n") == std::string::npos){
-            // TODO: Throw 400 exception to catch in MAIN and send response
-//            gotError("HTTP/1.1 400 Bad Request", 10);
             throw(server::httpException("Invalid Request", 400, "Bad Request"));
         }
 
         // Handle the request line
         int loc;
         if((loc = request.find("\r\n")) == std::string::npos){
-            // TODO: Throw 400 exception to catch in MAIN and send response
-//            gotError("HTTP/1.1 400 Bad Request", 11);
             throw(server::httpException("Invalid Request", 400, "Bad Request"));
         }
 
@@ -35,10 +31,6 @@ httpParser::Validator::Validator(std::string &request){
 
         // Remaining request should just be headers
         validateHeaders(request);
-
-
-        // TODO: Print Success 200 OK
-//        std::cout << "HTTP/1.1 200 OK" << std::endl;
 }
 
 /**
@@ -48,13 +40,6 @@ httpParser::Validator::Validator(std::string &request){
  * @param s
  */
 void httpParser::Validator::validateHeaders(std::string s) {
-    // Collect all the headers
-    // Check for quick exit condition
-    if (s.find("\r\n\r\n") == std::string::npos){
-        // TODO: Throw 400 exception to catch in MAIN and send response
-//        gotError("HTTP/1.1 400 Bad Request", 30);
-        throw(server::httpException("Invalid Request", 400, "Bad Request"));
-    }
 
     int loc_x;
     int loc_y;
@@ -80,8 +65,6 @@ void httpParser::Validator::validateHeaders(std::string s) {
         // Check for double host header
         if (tmp_header == "host"){
             if (this->m_seenHost){
-                // TODO: Throw 400 exception to catch in MAIN and send response
-//                gotError("HTTP/1.1 400 Bad Request", 31);
                 throw(server::httpException("Double host header", 400, "Bad Request"));
             }else{
                 this->m_seenHost = true;
@@ -104,23 +87,17 @@ void httpParser::Validator::validateHeaders(std::string s) {
 
         // No spaces allowed in header-value
         if (i.first.find(" ") != std::string::npos){
-            // TODO: Throw 400 exception to catch in MAIN and send response
-//            gotError("HTTP/1.1 400 Bad Request", 32);
             throw(server::httpException("Invalid Request", 400, "Bad Request"));
         }
 
         // No delimeters allowed in header value
         if (i.first.find_first_of(DELIMETERS) != std::string::npos){
-            // TODO: Throw 400 exception to catch in MAIN and send response
-//            gotError("HTTP/1.1 400 Bad Request", 33);
             throw(server::httpException("Invalid Request", 400, "Bad Request"));
         }
 
         // Verify Host header is not empty
         if (lowerHeader == "host"){
             if (trimmedVal.empty()){
-                // TODO: Throw 400 exception to catch in MAIN and send response
-//                gotError("HTTP/1.1 400 Bad Request", 34);
                 throw(server::httpException("Invalid Request", 400, "Bad Request"));
             }
             this->m_host = trimmedVal;
@@ -151,8 +128,6 @@ void httpParser::Validator::validateHeaders(std::string s) {
 
     // Host header required
     if (!this->m_seenHost && !this->m_host.empty()){
-        // TODO: Throw 400 exception to catch in MAIN and send response
-//        gotError("HTTP/1.1 400 Bad Request", 35);
         throw(server::httpException("Invalid Request", 400, "Bad Request"));
     }
 
@@ -160,8 +135,6 @@ void httpParser::Validator::validateHeaders(std::string s) {
     // This is heavily exploitable
     if (this->m_absolute_uri){
         if (this->m_req_target.find(this->m_host) == std::string::npos){
-            // TODO: Throw 400 exception to catch in MAIN and send response
-//            gotError("HTTP/1.1 400 Bad Request", 40);
             throw(server::httpException("Invalid Request", 400, "Bad Request"));
         }
     }
@@ -171,8 +144,6 @@ void httpParser::Validator::validateHeaders(std::string s) {
 
     // Do not allow both transfer-encoding and content-length
     if (this->m_transfer_encoding && this->m_content_length != -1){
-        // TODO: Throw 400 exception to catch in MAIN and send response
-//        gotError("HTTP/1.1 400 Bad Request", 36);
         throw(server::httpException("Invalid Request", 400, "Bad Request"));
     }
 
@@ -180,21 +151,15 @@ void httpParser::Validator::validateHeaders(std::string s) {
     if (!this->m_body.empty()){
         // 400 if there is a body on a GET or HEAD or DELETE request
         if (this->m_method == "GET" || this->m_method == "HEAD" || this->m_method == "DELETE"){
-            // TODO: Throw 400 exception to catch in MAIN and send response
-//            gotError("HTTP/1.1 400 Bad Request", 37);
             throw(server::httpException("Invalid Request", 400, "Bad Request"));
         }
         else if (this->m_content_length != this->m_body.size()){
-            // TODO: Throw 411 exception to catch in MAIN and send response
-//            gotError("HTTP/1.1 411 LENGTH REQUIRED", 38);
             throw(server::httpException("Length required", 411, "LENGTH REQUIRED"));
         }
     }
 
     // Content-range header not allowed with PUT
     if (this->m_method == "PUT" && this->m_content_range){
-        // TODO: Throw 400 exception to catch in MAIN and send response
-//        gotError("HTTP/1.1 400 Bad Request", 39);
         throw(server::httpException("Invalid Request", 400, "Bad Request"));
     }
 
@@ -253,16 +218,12 @@ void httpParser::Validator::validateRequestLine(std::string reqLine) {
 
     // There should only be 3 fields contained in the request Line
     if (tokens.size() != 3){
-        // TODO: Throw 400 exception to catch in MAIN and send response
-//        gotError("HTTP/1.1 400 Bad Request", 20);
         throw(server::httpException("Invalid Request", 400, "Bad Request"));
     }
 
     // Verify we support the method
     std::vector<std::string> supported = {"GET", "HEAD", "POST", "PUT", "DELETE"};
     if (std::find(supported.begin(), supported.end(), tokens[0]) == supported.end()){
-        // TODO: Throw 501 exception to catch in MAIN and send response
-//        gotError("HTTP/1.1 400 Bad Request", 21);
         throw(server::httpException("Unsupported Method", 501, "Not Implemented"));
     }
 
