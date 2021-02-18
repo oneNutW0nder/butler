@@ -24,8 +24,7 @@ namespace httpParser{
     class Validator {
 
     private:
-        // TODO: Add helpful member vars for getting information about validation
-        //       AKA--> Add getters for the member vars
+        // TODO: Add getters for x
         std::string m_method;
         std::string m_req_target;
         std::string m_version;
@@ -51,6 +50,26 @@ namespace httpParser{
         // GETTERS
         std::string GetMMethod() {
             return this->m_method;
+        }
+
+        std::string GetMReqTarget() {
+            return this->m_req_target;
+        }
+
+        std::string GetMVersion() {
+            return this->m_version;
+        }
+
+        std::string GetMBody() {
+            return this->m_body;
+        }
+
+        std::string GetMHost() {
+            return this->m_host;
+        }
+
+        [[nodiscard]] bool GetMAbsoluteUri() const {
+            return this->m_absolute_uri;
         }
 
     };
