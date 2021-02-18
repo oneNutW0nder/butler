@@ -54,11 +54,11 @@ int main(const int argc, const char *argv[]){
     signal(SIGINT, [](int) { shutdown_server(); });
 
     // Start the server loop!
-    // TODO: add in HTTPS bio chain
+    // TODO: --> Add in HTTPS bio chain
+    //       --> Add in threading for handling requests
     std::cout << "Waiting for connections!" << std::endl;
     while (auto bio = server::new_connection(listenBio.get())){
         try {
-            throw(server::httpException("testing custom exception", 500, "SERVER ERROR"));
             std::cout << "Connection Received" << std::endl;
             std::string req = server::receive_http_message(bio.get());
             // TODO: Change things in VALIDATOR
@@ -77,13 +77,18 @@ int main(const int argc, const char *argv[]){
         }
         // Catch integers which represent error HTTP code
         catch (server::httpException& e) {
-            // HTTP/1.1 e
+            //  TODO: Write server::response() to construct server responses
+            // HTTP/1.1 e.statusCode e.codemsg
             std::string resp = "HTTP/1.1 ";
             resp += std::to_string(e.GetMStatusCode());
+            resp += " ";
             resp += e.GetMCodeMsg();
+            resp += "\r\n";
+            resp += "Content-Length: ";
+            resp += e.GetMErrMsg().length();
             resp += "\r\n\r\n";
-            std::cout << resp << std::endl;
-            break;
+            resp += e.GetMErrMsg();
+            server::sendTo(bio.get(), resp);
         }
         // Catch all other exceptions and respond with 500 code
         catch (...) { std::cerr << "all other errors lol" << std::endl; }
