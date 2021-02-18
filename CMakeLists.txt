@@ -10,6 +10,7 @@ add_library(http SHARED src/lib/simpleHttp.cpp)
 add_library(socket SHARED src/lib/simpleSocket.cpp)
 add_library(util SHARED src/lib/util.cpp)
 add_library(httpparser SHARED src/lib/httpParser.cpp)
+add_library(simpleServer SHARED src/lib/simpleServer.cpp)
 add_library(argparse INTERFACE include/argparse.hpp)
 
 add_subdirectory(src/client)
