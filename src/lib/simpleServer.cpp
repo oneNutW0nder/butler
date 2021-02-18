@@ -127,21 +127,39 @@ namespace server {
     }
 
     std::string makeResponse(const std::string& code, const std::string& codeMsg, const std::string& content) {
-        // TODO: This function call should create a response for the server to send back to the client
-        //       using the information provided in the params
+        // TODO: Maybe add some more server headers??
         // HTTP/1.1 CODE CODE_MSG
         std::string resp = fmt::format("HTTP/1.1 {} {}\r\n",  code, codeMsg);
         resp += fmt::format("Content-Length: {}\r\n", content.length());
-        resp += fmt::format("\r\n\r\n");
+        resp += fmt::format("\r\n");
         resp += content;
+
+        return resp;
     }
 
-    std::vector<std::string> parseResource(std::string reqTarget, const bool& absolute) {
+    std::pair<std::string, std::string> parseResource(std::string reqTarget, const bool& absolute) {
 
-        std::string params = "";
+        int loc;
+        std::string params;
 
+        // Handle absolute request
         if (absolute) {
-            // TODO: Handle parsing resource from absolute req-target
+            // Strip off scheme for https:// || http://
+            if ((loc = reqTarget.find("https://")) != std::string::npos) {
+                // strip off https:// scheme
+                reqTarget.erase(0, 7);
+            } else {
+                // Stip off http:// scheme
+                reqTarget.erase(0, 6);
+            }
+
+            // Check for "/"
+            if ((loc = reqTarget.find('/')) != std::string::npos) {
+                reqTarget.erase(0, loc);
+            } else {
+                // If no "/" is found then set default value
+                reqTarget = '/';
+            }
         }
 
         // Default resource request
@@ -155,7 +173,6 @@ namespace server {
             return {reqTarget, params};
         }
 
-        int loc = -1;
         // Check for and strip fragment
         if ((loc = reqTarget.find('#')) != std::string::npos) {
             reqTarget.erase(loc);
@@ -169,7 +186,5 @@ namespace server {
 
         // If we make it here all that should remain is just the path to resource
         return {reqTarget, params};
-
-
     }
 }

@@ -35,7 +35,7 @@ namespace server {
     void init_ssl();
     void ssl_errors(const char *str);
     void sendTo (BIO *bio, const std::string& resp);
-    std::vector<std::string> parseResource(std::string reqTarget, const bool& absolute);
+    std::pair<std::string, std::string> parseResource(std::string reqTarget, const bool& absolute);
     std::string receiveChunk(BIO *bio);
     std::string receive_http_message(BIO *bio);
     std::vector<std::string> split_headers(const std::string& text);
