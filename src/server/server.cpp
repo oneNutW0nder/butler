@@ -66,14 +66,15 @@ int main(const int argc, const char *argv[]){
             // Validate and get resource/params
             auto valid = httpParser::Validator(req);
             // TODO: finish param/resource parsing
-            std::vector<std::string> resources = server::parseResource(valid.GetMReqTarget(), valid.GetMAbsoluteUri());
-
+            auto resources = server::parseResource(valid.GetMReqTarget(), valid.GetMAbsoluteUri());
+            std::cout << resources.first << " :: " << resources.second << std::endl;
             // TODO: switch on method type and do method things
 
+            auto defResp = server::makeResponse("200", "OK", "Default content");
+            server::sendTo(bio.get(), defResp);
         }
-        // Catch integers which represent error HTTP code
+        // Catch custom server exceptions that contain info about error type and message
         catch (server::httpException& e) {
-            //  TODO: Write server::response() to construct server responses
             auto resp = server::makeResponse(std::to_string(e.GetMStatusCode()), e.GetMCodeMsg(), e.GetMErrMsg());
             server::sendTo(bio.get(), resp);
         }
