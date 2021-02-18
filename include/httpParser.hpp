@@ -48,28 +48,32 @@ namespace httpParser{
         void validateHeaders(std::string s);
 
         // GETTERS
-        std::string GetMMethod() {
+        [[nodiscard]] std::string GetMMethod() {
             return this->m_method;
         }
 
-        std::string GetMReqTarget() {
+        [[nodiscard]] std::string GetMReqTarget() {
             return this->m_req_target;
         }
 
-        std::string GetMVersion() {
+        [[nodiscard]] std::string GetMVersion() {
             return this->m_version;
         }
 
-        std::string GetMBody() {
+        [[nodiscard]] std::string GetMBody() {
             return this->m_body;
         }
 
-        std::string GetMHost() {
+        [[nodiscard]] std::string GetMHost() {
             return this->m_host;
         }
 
         [[nodiscard]] bool GetMAbsoluteUri() const {
             return this->m_absolute_uri;
+        }
+
+        [[nodiscard]] std::map<std::string, std::string> GetMHeaders() {
+            return this->m_headers;
         }
 
     };
