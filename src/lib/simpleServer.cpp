@@ -1,5 +1,7 @@
 #include "simpleServer.hpp"
 
+#include <fmt/format.h>
+
 namespace server {
 
     // Load openssl
@@ -122,5 +124,52 @@ namespace server {
             return nullptr;
         }
         return server::UniquePtr<BIO>(BIO_pop(listenBIO));
+    }
+
+    std::string makeResponse(const std::string& code, const std::string& codeMsg, const std::string& content) {
+        // TODO: This function call should create a response for the server to send back to the client
+        //       using the information provided in the params
+        // HTTP/1.1 CODE CODE_MSG
+        std::string resp = fmt::format("HTTP/1.1 {} {}\r\n",  code, codeMsg);
+        resp += fmt::format("Content-Length: {}\r\n", content.length());
+        resp += fmt::format("\r\n\r\n");
+        resp += content;
+    }
+
+    std::vector<std::string> parseResource(std::string reqTarget, const bool& absolute) {
+
+        std::string params = "";
+
+        if (absolute) {
+            // TODO: Handle parsing resource from absolute req-target
+        }
+
+        // Default resource request
+        if (reqTarget == "/") {
+            return {"/index.html", params};
+        }
+
+        // Return path to target if no params or fragment found
+        if (reqTarget.find('?') == std::string::npos &&
+            reqTarget.find('#') == std::string::npos) {
+            return {reqTarget, params};
+        }
+
+        int loc = -1;
+        // Check for and strip fragment
+        if ((loc = reqTarget.find('#')) != std::string::npos) {
+            reqTarget.erase(loc);
+        }
+
+        // Check for params and save params if exist
+        if ((loc = reqTarget.find('?')) != std::string::npos) {
+            // TODO: Parse params for saving
+            reqTarget.erase(loc);
+        }
+
+        // If we make it here all that should remain is just the path to resource
+        return {reqTarget, params};
+
+
     }
 }

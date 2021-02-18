@@ -14,12 +14,6 @@
 #include <openssl/err.h>
 #include <openssl/ssl.h>
 
-/**
- * "server" namespace will contain methods that will assist in networking
- * functionality leveraging openssl's BIOs. Special thanks to Arthur O'Dwyer
- * for the wonderful tutorial on using openssl with modern C++.
- * https://quuxplusone.github.io/blog/2020/01/24/openssl-part-1/
- */
 namespace server {
 
     // Special deleter functions used alongside smart pointers
@@ -38,65 +32,44 @@ namespace server {
         return upper;
     }
 
-    // Load openssl
     void init_ssl();
-
-    // Used for fatal errors with SSL
-    // https://quuxplusone.github.io/blog/2020/01/24/openssl-part-1/
     void ssl_errors(const char *str);
-
-    /**
-     * Reads a chunk of 1024 bytes from a BIO. Throws
-     * std::runtime_error if a problem occurs
-     * https://quuxplusone.github.io/blog/2020/01/24/openssl-part-1/
-     *
-     * @param bio --> BIO to read from
-     * @return --> Data read from the BIO
-     */
-    std::string receiveChunk(BIO *bio);
-
-    /**
-     * Splits request headers. Used for searching for content-length
-     * when reading from the BIO
-     * https://quuxplusone.github.io/blog/2020/01/24/openssl-part-1/
-     *
-     * @param text --> Request headers for splitting
-     * @return --> vector of split headers
-     */
-    std::vector<std::string> split_headers(const std::string& text);
-
-    /**
-     * Receives a full HTTP request from a BIO. It reads from the BIO
-     * until it can find a "content-length" header which it will use to
-     * read the full request body, otherwise it just reads in all the request
-     * headers and returns them as a std::string.
-     * https://quuxplusone.github.io/blog/2020/01/24/openssl-part-1/
-     *
-     * @param bio --> pointer to BIO to read from
-     * @return --> String representation of the HTTP request
-     */
-    std::string receive_http_message(BIO *bio);
-
-    /**
-     * Sends data across a BIO
-     * Adapted From: https://quuxplusone.github.io/blog/2020/01/24/openssl-part-1/
-     *
-     * @param bio --> BIO to write data to
-     * @param resp --> Data to write, usually an HTTP request
-     */
     void sendTo (BIO *bio, const std::string& resp);
+    std::vector<std::string> parseResource(std::string reqTarget, const bool& absolute);
+    std::string receiveChunk(BIO *bio);
+    std::string receive_http_message(BIO *bio);
+    std::vector<std::string> split_headers(const std::string& text);
+    server::UniquePtr<BIO> new_connection(BIO *listenBIO);
+
+    std::string makeResponse(const std::string& code, const std::string& codeMsg, const std::string& content);
 
     /**
-     * This function handles the weirdness that is openssl's accept BIOs.
-     * When a new connection is received it adds the new BIO to the chain
-     * where it was accepted. To handle the new connection, we have to pop
-     * the new BIO off the chain.
-     * https://quuxplusone.github.io/blog/2020/01/24/openssl-part-1/
-     *
-     * @param listenBIO --> The BIO where you are doing the listening
-     * @return --> returns the new connection BIO or nullptr if failed
+     * Custom exception type. Used to throw exceptions with information used to
+     * set the proper response code and response message for whatever error occured.
      */
-    server::UniquePtr<BIO> new_connection(BIO *listenBIO);
+    class httpException : public std::exception{
+    private:
+        int m_status_code;
+        const char* m_code_msg;
+        const std::string m_err_msg;
+    public:
+        httpException(std::string err_msg, int status_code, const char* code_msg) :
+                m_err_msg (std::move(err_msg)),
+                m_status_code (status_code),
+                m_code_msg (code_msg)
+        {}
+
+
+        [[nodiscard]] const char* what() const noexcept override {
+            return this->m_err_msg.c_str();
+        }
+
+        [[nodiscard]] const std::string& GetMErrMsg() const { return this->m_err_msg; }
+        [[nodiscard]] int GetMStatusCode() const { return this->m_status_code; }
+        [[nodiscard]] const char* GetMCodeMsg() const { return this->m_code_msg; }
+
+    };
+}
 
     /**
      * Server class will contain member variables and functions that are used
@@ -140,28 +113,5 @@ namespace server {
 //    };
 
 
-    class httpException : public std::exception{
-    private:
-        int m_status_code;
-        const char* m_code_msg;
-        const std::string m_err_msg;
-    public:
-        httpException(std::string err_msg, int status_code, const char* code_msg) :
-            m_err_msg (std::move(err_msg)),
-            m_status_code (status_code),
-            m_code_msg (code_msg)
-        {}
-
-
-        [[nodiscard]] const char* what() const noexcept override {
-            return this->m_err_msg.c_str();
-        }
-
-        [[nodiscard]] const std::string& GetMErrMsg() const { return this->m_err_msg; }
-        [[nodiscard]] int GetMStatusCode() const { return this->m_status_code; }
-        [[nodiscard]] const char* GetMCodeMsg() const { return this->m_code_msg; }
-
-    };
-}
 
 #endif //BUTLER_CLIENT_SIMPLESERVER_HPP
