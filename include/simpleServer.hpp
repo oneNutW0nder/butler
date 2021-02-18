@@ -6,8 +6,9 @@
 #include <vector>
 #include <algorithm>
 #include <exception>
+#include <iostream>
 
-#include <strings.h>
+#include <cstring>
 
 #include <openssl/bio.h>
 #include <openssl/err.h>
@@ -38,18 +39,11 @@ namespace server {
     }
 
     // Load openssl
-    void init_ssl(){
-        SSL_library_init();
-        SSL_load_error_strings();
-    }
+    void init_ssl();
 
     // Used for fatal errors with SSL
     // https://quuxplusone.github.io/blog/2020/01/24/openssl-part-1/
-    void ssl_errors(const char *str) {
-        std::cerr << str << std::endl;
-        ERR_print_errors_fp(stderr);
-        exit(10);
-    }
+    void ssl_errors(const char *str);
 
     /**
      * Reads a chunk of 1024 bytes from a BIO. Throws
@@ -59,19 +53,7 @@ namespace server {
      * @param bio --> BIO to read from
      * @return --> Data read from the BIO
      */
-    std::string receiveChunk(BIO *bio) {
-        char buffer[1024];
-        int len = BIO_read(bio, buffer, sizeof(buffer));
-        if (len < 0) {
-            throw(std::runtime_error("ERROR reading from BIO"));
-        } else if (len > 0) {
-            return std::string(buffer, len);
-        } else if (BIO_should_retry(bio)) {
-            return receiveChunk(bio);
-        } else {
-            throw(std::runtime_error("ERROR reading from empty BIO"));
-        }
-    }
+    std::string receiveChunk(BIO *bio);
 
     /**
      * Splits request headers. Used for searching for content-length
@@ -81,16 +63,7 @@ namespace server {
      * @param text --> Request headers for splitting
      * @return --> vector of split headers
      */
-    std::vector<std::string> split_headers(const std::string& text) {
-        std::vector<std::string> lines;
-        const char *start = text.c_str();
-        while (const char *end = strstr(start, "\r\n")) {
-            lines.push_back(std::string(start, end));
-            start = end + 2;
-        }
-        return lines;
-    }
-
+    std::vector<std::string> split_headers(const std::string& text);
 
     /**
      * Receives a full HTTP request from a BIO. It reads from the BIO
@@ -102,32 +75,7 @@ namespace server {
      * @param bio --> pointer to BIO to read from
      * @return --> String representation of the HTTP request
      */
-    std::string receive_http_message(BIO *bio) {
-        std::string contentLen = "Content-length";
-        std::transform(contentLen.begin(), contentLen.end(), contentLen.begin(), ::tolower);
-        std::string headers = server::receiveChunk(bio);
-        char *end_of_headers = strstr(&headers[0], "\r\n\r\n");
-        while (end_of_headers == nullptr) {
-            headers += server::receiveChunk(bio);
-            end_of_headers = strstr(&headers[0], "\r\n\r\n");
-        }
-        std::string body = std::string(end_of_headers+4, &headers[headers.size()]);
-        headers.resize(end_of_headers+2 - &headers[0]);
-        size_t content_length = 0;
-        for (const std::string& line : server::split_headers(headers)) {
-            if (const char *colon = strchr(line.c_str(), ':')) {
-                auto header_name = std::string(&line[0], colon);
-                if (header_name == "content-length") {
-                    content_length = std::stoul(colon+1);
-                }
-            }
-        }
-        while (body.size() < content_length) {
-            body += server::receiveChunk(bio);
-        }
-        return headers + "\r\n" + body;
-    }
-
+    std::string receive_http_message(BIO *bio);
 
     /**
      * Sends data across a BIO
@@ -136,11 +84,7 @@ namespace server {
      * @param bio --> BIO to write data to
      * @param resp --> Data to write, usually an HTTP request
      */
-    void sendTo (BIO *bio, const std::string& resp) {
-        BIO_write(bio, resp.data(), resp.size());
-        BIO_flush(bio);
-
-    }
+    void sendTo (BIO *bio, const std::string& resp);
 
     /**
      * This function handles the weirdness that is openssl's accept BIOs.
@@ -152,12 +96,7 @@ namespace server {
      * @param listenBIO --> The BIO where you are doing the listening
      * @return --> returns the new connection BIO or nullptr if failed
      */
-    server::UniquePtr<BIO> new_connection(BIO *listenBIO) {
-        if (BIO_do_accept(listenBIO) <= 0) {
-            return nullptr;
-        }
-        return server::UniquePtr<BIO>(BIO_pop(listenBIO));
-    }
+    server::UniquePtr<BIO> new_connection(BIO *listenBIO);
 
     /**
      * Server class will contain member variables and functions that are used
@@ -165,39 +104,40 @@ namespace server {
      * Arthur O'Dwyer for the tutorial on how to use C++ to wrap C APIs.
      * https://quuxplusone.github.io/blog/2020/01/24/openssl-part-1/
      */
-    class Server{
-    private:
-        std::string m_str;
-        server::UniquePtr<BIO_METHOD> m_bio_methods;
-        server::UniquePtr<BIO> m_bio;
-    public:
-        BIO *bio() { return m_bio.get(); }
-        std::string str() && { return std::move(m_str); }
-
-        Server(Server&&) = delete;
-        Server& operator=(Server&&) = delete;
-
-        explicit Server(){
-            m_bio_methods.reset(BIO_meth_new(BIO_TYPE_SOURCE_SINK, "ServerBIO"));
-            if (m_bio_methods == nullptr){
-                throw std::runtime_error("FATAL: Failed at BIO_meth_new()... exiting");
-            }
-
-            BIO_meth_set_write(m_bio_methods.get(), [](BIO *bio, const char *data, int len) -> int {
-                auto *str = reinterpret_cast<std::string*>(BIO_get_data(bio));
-                str->append(data, len);
-                return len;
-            });
-
-            m_bio.reset(BIO_new(m_bio_methods.get()));
-            if (m_bio == nullptr){
-                throw std::runtime_error("FATAL: Failed at BIO_new()... exiting");
-            }
-
-            BIO_set_data(m_bio.get(), &m_str);
-            BIO_set_init(m_bio.get(), 1);
-        }
-    };
+     // TODO: Not sure if this is going to be used anywhere
+//    class Server{
+//    private:
+//        std::string m_str;
+//        server::UniquePtr<BIO_METHOD> m_bio_methods;
+//        server::UniquePtr<BIO> m_bio;
+//    public:
+//        BIO *bio() { return m_bio.get(); }
+//        std::string str() && { return std::move(m_str); }
+//
+//        Server(Server&&) = delete;
+//        Server& operator=(Server&&) = delete;
+//
+//        explicit Server(){
+//            m_bio_methods.reset(BIO_meth_new(BIO_TYPE_SOURCE_SINK, "ServerBIO"));
+//            if (m_bio_methods == nullptr){
+//                throw std::runtime_error("FATAL: Failed at BIO_meth_new()... exiting");
+//            }
+//
+//            BIO_meth_set_write(m_bio_methods.get(), [](BIO *bio, const char *data, int len) -> int {
+//                auto *str = reinterpret_cast<std::string*>(BIO_get_data(bio));
+//                str->append(data, len);
+//                return len;
+//            });
+//
+//            m_bio.reset(BIO_new(m_bio_methods.get()));
+//            if (m_bio == nullptr){
+//                throw std::runtime_error("FATAL: Failed at BIO_new()... exiting");
+//            }
+//
+//            BIO_set_data(m_bio.get(), &m_str);
+//            BIO_set_init(m_bio.get(), 1);
+//        }
+//    };
 
 
     class httpException : public std::exception{
