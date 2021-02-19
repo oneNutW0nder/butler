@@ -237,7 +237,9 @@ namespace server {
     // TODO: Support request params being sent around
     // Implement each method and return the correct response
     std::string serveRequest(struct requestInfo* reqInfo){
+        // We have to check for 404 for each method because some methods don't need a file to exist
 
+        /** GET METHOD **/
         if (reqInfo->method == "GET") {
             std::cout << "GET request received..." << std::endl;
             // check for: 404 File not found!
@@ -257,21 +259,50 @@ namespace server {
             tmp << fd.rdbuf();
             return makeResponse("200", "OK", tmp.str());
         }
+        /** HEAD METHOD **/
         else if (reqInfo->method == "HEAD") {
-            // HEAD SUPPORT
+            std::cout << "HEAD request received..." << std::endl;
+            // check for: 404 File not found!
+            if (!std::filesystem::exists(reqInfo->serverRoot += reqInfo->resource)) {
+                // Throw with no "err_msg" beacuse HEAD response should have no body
+                throw(httpException("", 404, "Not Found"));
+            }
+
+            // If we make it here we send a request with no body
+            return makeResponse("200", "OK", "");
         }
+        /** POST METHOD **/
         else if (reqInfo->method == "POST") {
-            // Post support
+            std::cout << "POST request received..." << std::endl;
+            // TODO: Make this real POST method... For now make it the same as GET
+
+            // check for: 404 File not found!
+            if (!std::filesystem::exists(reqInfo->serverRoot += reqInfo->resource)) {
+                throw(httpException("The file you requested does not exist", 404, "Not Found"));
+            }
+
+            // serverRoot is now the full path to the resource because of the "+=" above
+            std::ifstream fd(reqInfo->serverRoot, std::ios::in);
+            if (!fd.is_open()) {
+                // Assume forbidden if can't open... no good way to check for permission failure
+                throw(httpException("Failed to open the requested resource: Permission denied", 403, "Forbidden"));
+            }
+
+            // If we make it here read the requested file and send it
+            std::stringstream tmp;
+            tmp << fd.rdbuf();
+            return makeResponse("200", "OK", tmp.str().append("<br>POST is WIP"));
         }
         else if (reqInfo->method == "PUT") {
+            std::cout << "PUT request received..." << std::endl;
+
             //  PUT support
         }
         else if (reqInfo->method == "DELETE") {
+            std::cout << "DELETE request received..." << std::endl;
             // DELETE SUPPORT
         }
-        else {
-            // Throw an exception here because we should never be in an invalidated state here
-            throw(httpException("Extreme Fatal Error", 500, "Internal Server Error"));
-        }
+        // Throw an exception here because we should never be in an invalidated state here
+        throw(httpException("Extreme Fatal Error", 500, "Internal Server Error"));
     }
 }
