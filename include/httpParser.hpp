@@ -33,8 +33,8 @@ namespace httpParser{
 
         int m_content_length = -1;
         std::string m_content_type;
-        bool m_transfer_encoding;
-        bool m_content_range;
+        bool m_transfer_encoding = false;
+        bool m_content_range = false;
         bool m_seenHost = false;
         bool m_absolute_uri = false;
 
