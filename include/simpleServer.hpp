@@ -43,6 +43,14 @@ namespace server {
 
     std::string makeResponse(const std::string& code, const std::string& codeMsg, const std::string& content);
 
+    // TODO: Support request params being sent around
+    void serveRequest(const std::string& resource, const std::string& method);
+    void serveGET(const std::string& resource);
+    void serveHEAD(const std::string& resource);
+    void servePOST(const std::string& resource);
+    void servePUT(const std::string& resource);
+    void serveDELETE(const std::string& resource);
+
     /**
      * Custom exception type. Used to throw exceptions with information used to
      * set the proper response code and response message for whatever error occured.

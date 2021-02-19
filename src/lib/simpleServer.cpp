@@ -137,6 +137,7 @@ namespace server {
         return resp;
     }
 
+    // TODO: FIgure out a way to return params as well... might have to go back to a std::vector?
     std::pair<std::string, std::string> parseResource(std::string reqTarget, const bool& absolute) {
 
         int loc;
@@ -187,4 +188,13 @@ namespace server {
         // If we make it here all that should remain is just the path to resource
         return {reqTarget, params};
     }
+
+
+    // TODO: Support request params being sent around
+    void serveRequest(const std::string& resource, const std::string& method){}
+    void serveGET(const std::string& resource){}
+    void serveHEAD(const std::string& resource){}
+    void servePOST(const std::string& resource){}
+    void servePUT(const std::string& resource){}
+    void serveDELETE(const std::string& resource){}
 }
