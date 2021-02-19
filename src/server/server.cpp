@@ -77,8 +77,8 @@ int main(const int argc, const char *argv[]){
             server::requestInfo reqInfo;
             reqInfo.method = valid.GetMMethod();
             reqInfo.resource = resources.first;
-            reqInfo.params = {};   // TODO
-            reqInfo.body = "";     // TODO
+            reqInfo.params = {};   // TODO: Will be dependent on GET params or POST body params
+            reqInfo.body = valid.GetMBody();
             reqInfo.serverRoot = serverRoot;
 
             // TODO: switch on method type and do method things
@@ -87,12 +87,12 @@ int main(const int argc, const char *argv[]){
         }
         // Catch custom server exceptions that contain info about error type and message
         catch (server::httpException& e) {
-            auto resp = server::makeResponse(std::to_string(e.GetMStatusCode()), e.GetMCodeMsg(), e.GetMErrMsg());
+            auto resp = server::makeResponse(std::to_string(e.GetMStatusCode()), e.GetMCodeMsg(), e.GetMErrMsg(), {});
             server::sendTo(bio.get(), resp);
         }
         // Catch all other exceptions and respond with 500 code
         catch (...) {
-            auto resp = server::makeResponse("500", "Internal Server Error", "General Error");
+            auto resp = server::makeResponse("500", "Internal Server Error", "General Error", {});
             server::sendTo(bio.get(), resp);
         }
 
