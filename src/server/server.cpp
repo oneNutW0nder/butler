@@ -69,6 +69,7 @@ int main(const int argc, const char *argv[]){
             auto resources = server::parseResource(valid.GetMReqTarget(), valid.GetMAbsoluteUri());
             std::cout << resources.first << " :: " << resources.second << std::endl;
             // TODO: switch on method type and do method things
+//            server::serveRequest(resources.first, valid.GetMMethod());
 
             auto defResp = server::makeResponse("200", "OK", "Default content");
             server::sendTo(bio.get(), defResp);
