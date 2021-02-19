@@ -72,11 +72,18 @@ int main(const int argc, const char *argv[]){
             // TODO: finish param/resource parsing
             auto resources = server::parseResource(valid.GetMReqTarget(), valid.GetMAbsoluteUri());
             std::cout << resources.first << " :: " << resources.second << std::endl;
-            // TODO: switch on method type and do method things
-            server::serveRequest(resources.first, valid.GetMMethod(), serverRoot);
 
-            auto defResp = server::makeResponse("200", "OK", "Default content");
-            server::sendTo(bio.get(), defResp);
+            // Create a requestInfo struct to pass around
+            server::requestInfo reqInfo;
+            reqInfo.method = valid.GetMMethod();
+            reqInfo.resource = resources.first;
+            reqInfo.params = {};   // TODO
+            reqInfo.body = "";     // TODO
+            reqInfo.serverRoot = serverRoot;
+
+            // TODO: switch on method type and do method things
+            auto resp = server::serveRequest(&reqInfo);
+            server::sendTo(bio.get(), resp);
         }
         // Catch custom server exceptions that contain info about error type and message
         catch (server::httpException& e) {
