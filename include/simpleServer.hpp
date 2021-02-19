@@ -9,6 +9,7 @@
 #include <iostream>
 #include <filesystem>
 #include <cstring>
+#include <map>
 
 #include <openssl/bio.h>
 #include <openssl/err.h>
@@ -32,6 +33,15 @@ namespace server {
         return upper;
     }
 
+    // Struct to hold request information which needs to be passed around to fulfill the request
+    struct requestInfo {
+        std::string method;
+        std::string resource;
+        std::map<std::string, std::string> params;
+        std::string body;
+        std::string serverRoot;
+    };
+
     void init_ssl();
     std::filesystem::path init_server();
     void ssl_errors(const char *str);
@@ -45,12 +55,7 @@ namespace server {
     std::string makeResponse(const std::string& code, const std::string& codeMsg, const std::string& content);
 
     // TODO: Support request params being sent around
-    void serveRequest(const std::string& resource, const std::string& method, const std::filesystem::path& serverRoot);
-    void serveGET(const std::string& resource, const std::filesystem::path& serverRoot);
-    void serveHEAD(const std::string& resource, const std::filesystem::path& serverRoot);
-    void servePOST(const std::string& resource, const std::filesystem::path& serverRoot);
-    void servePUT(const std::string& resource, const std::filesystem::path& serverRoot);
-    void serveDELETE(const std::string& resource, const std::filesystem::path& serverRoot);
+    std::string serveRequest(struct requestInfo* requestInfo);
 
     /**
      * Custom exception type. Used to throw exceptions with information used to
@@ -79,48 +84,5 @@ namespace server {
 
     };
 }
-
-    /**
-     * Server class will contain member variables and functions that are used
-     * to facilitate the operation of an HTTP server. Again, special thanks to
-     * Arthur O'Dwyer for the tutorial on how to use C++ to wrap C APIs.
-     * https://quuxplusone.github.io/blog/2020/01/24/openssl-part-1/
-     */
-     // TODO: Not sure if this is going to be used anywhere
-//    class Server{
-//    private:
-//        std::string m_str;
-//        server::UniquePtr<BIO_METHOD> m_bio_methods;
-//        server::UniquePtr<BIO> m_bio;
-//    public:
-//        BIO *bio() { return m_bio.get(); }
-//        std::string str() && { return std::move(m_str); }
-//
-//        Server(Server&&) = delete;
-//        Server& operator=(Server&&) = delete;
-//
-//        explicit Server(){
-//            m_bio_methods.reset(BIO_meth_new(BIO_TYPE_SOURCE_SINK, "ServerBIO"));
-//            if (m_bio_methods == nullptr){
-//                throw std::runtime_error("FATAL: Failed at BIO_meth_new()... exiting");
-//            }
-//
-//            BIO_meth_set_write(m_bio_methods.get(), [](BIO *bio, const char *data, int len) -> int {
-//                auto *str = reinterpret_cast<std::string*>(BIO_get_data(bio));
-//                str->append(data, len);
-//                return len;
-//            });
-//
-//            m_bio.reset(BIO_new(m_bio_methods.get()));
-//            if (m_bio == nullptr){
-//                throw std::runtime_error("FATAL: Failed at BIO_new()... exiting");
-//            }
-//
-//            BIO_set_data(m_bio.get(), &m_str);
-//            BIO_set_init(m_bio.get(), 1);
-//        }
-//    };
-
-
 
 #endif //BUTLER_CLIENT_SIMPLESERVER_HPP

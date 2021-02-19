@@ -7,6 +7,9 @@
 
 namespace server {
 
+#define SERVER_ROOT     "butler-server"
+
+
     // Load openssl
     void init_ssl(){
         SSL_library_init();
@@ -23,7 +26,7 @@ namespace server {
         }
 
         std::filesystem::path serverRoot(home);
-        serverRoot /= "butler";
+        serverRoot /= SERVER_ROOT;
         // Create server root if doesn't exist
         if (!std::filesystem::exists(serverRoot)) {
             if (!std::filesystem::create_directory(serverRoot)) {
@@ -46,7 +49,7 @@ namespace server {
         }
 
         std::cout << "Server initialization finished." << std::endl;
-        std::cout << "Server Root at: $HOME/butler/" << std::endl;
+        std::cout << "Server Root at: "<< serverRoot << std::endl;
 
         return serverRoot;
     }
@@ -232,20 +235,43 @@ namespace server {
 
 
     // TODO: Support request params being sent around
-    void serveRequest(const std::string& resource, const std::string& method, const std::filesystem::path& serverRoot){
-        // TODO: Switch on the method and call the function associated with the method
-        //       This function just exists as a wrapper for the caller so it looks cleaner
-    }
+    // Implement each method and return the correct response
+    std::string serveRequest(struct requestInfo* reqInfo){
 
-    void serveGET(const std::string& resource, const std::filesystem::path& serverRoot) {
-        // TODO: Handles the GET request
-        //       --> Tries to read the target "resource" file and responds with the file contents
-        //       --> Needs to search within SERVER_ROOT
-        //       --> throws (403 forbidden server::httpException if file access is not permitted
-    }
+        if (reqInfo->method == "GET") {
+            std::cout << "GET request received..." << std::endl;
+            // check for: 404 File not found!
+            if (!std::filesystem::exists(reqInfo->serverRoot += reqInfo->resource)) {
+                throw(httpException("The file you requested does not exist", 404, "Not Found"));
+            }
 
-    void serveHEAD(const std::string& resource, const std::filesystem::path& serverRoot){}
-    void servePOST(const std::string& resource, const std::filesystem::path& serverRoot){}
-    void servePUT(const std::string& resource, const std::filesystem::path& serverRoot){}
-    void serveDELETE(const std::string& resource, const std::filesystem::path& serverRoot){}
+            // serverRoot is now the full path to the resource because of the "+=" above
+            std::ifstream fd(reqInfo->serverRoot, std::ios::in);
+            if (!fd.is_open()) {
+                // Assume forbidden if can't open... no good way to check for permission failure
+                throw(httpException("Failed to open the requested resource: Permission denied", 403, "Forbidden"));
+            }
+
+            // If we make it here read the requested file and send it
+            std::stringstream tmp;
+            tmp << fd.rdbuf();
+            return makeResponse("200", "OK", tmp.str());
+        }
+        else if (reqInfo->method == "HEAD") {
+            // HEAD SUPPORT
+        }
+        else if (reqInfo->method == "POST") {
+            // Post support
+        }
+        else if (reqInfo->method == "PUT") {
+            //  PUT support
+        }
+        else if (reqInfo->method == "DELETE") {
+            // DELETE SUPPORT
+        }
+        else {
+            // Throw an exception here because we should never be in an invalidated state here
+            throw(httpException("Extreme Fatal Error", 500, "Internal Server Error"));
+        }
+    }
 }
