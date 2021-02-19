@@ -1,3 +1,6 @@
+#include <fstream>
+#include <cstdlib>
+
 #include "simpleServer.hpp"
 
 #include <fmt/format.h>
@@ -8,6 +11,44 @@ namespace server {
     void init_ssl(){
         SSL_library_init();
         SSL_load_error_strings();
+    }
+
+    // Initialize the server
+    // Server Root: $HOME/butler
+    std::filesystem::path init_server() {
+        char* home;
+        if ((home = getenv("HOME")) == nullptr) {
+            std::cerr << "FATAL: Please set the $HOME env variable... exiting" << std::endl;
+            exit(11);
+        }
+
+        std::filesystem::path serverRoot(home);
+        serverRoot /= "butler";
+        // Create server root if doesn't exist
+        if (!std::filesystem::exists(serverRoot)) {
+            if (!std::filesystem::create_directory(serverRoot)) {
+                std::cerr << "FATAL: Failed to create server root at $HOME/butler... exiting" << std::endl;
+                exit(12);
+            }
+        }
+
+        // Write default index.html file if it doesn't exist
+        if (!std::filesystem::exists(serverRoot / "index.html")) {
+            std::ofstream helloFile(serverRoot / "index.html", std::ofstream::out);
+            if (!helloFile.is_open()) {
+                std::cerr << "FATAL: Failed to create default index.html at $HOME/butler/index.html... exiting" << std::endl;
+                exit(13);
+            }
+
+            std::string welcome = "<h1>Welcome!</h1><br><h1>Thank you for using the Butler Web Server!</h1>";
+            helloFile.write(welcome.c_str(), welcome.size());
+            helloFile.close();
+        }
+
+        std::cout << "Server initialization finished." << std::endl;
+        std::cout << "Server Root at: $HOME/butler/" << std::endl;
+
+        return serverRoot;
     }
 
     // Used for fatal errors with SSL
@@ -191,10 +232,20 @@ namespace server {
 
 
     // TODO: Support request params being sent around
-    void serveRequest(const std::string& resource, const std::string& method){}
-    void serveGET(const std::string& resource){}
-    void serveHEAD(const std::string& resource){}
-    void servePOST(const std::string& resource){}
-    void servePUT(const std::string& resource){}
-    void serveDELETE(const std::string& resource){}
+    void serveRequest(const std::string& resource, const std::string& method, const std::filesystem::path& serverRoot){
+        // TODO: Switch on the method and call the function associated with the method
+        //       This function just exists as a wrapper for the caller so it looks cleaner
+    }
+
+    void serveGET(const std::string& resource, const std::filesystem::path& serverRoot) {
+        // TODO: Handles the GET request
+        //       --> Tries to read the target "resource" file and responds with the file contents
+        //       --> Needs to search within SERVER_ROOT
+        //       --> throws (403 forbidden server::httpException if file access is not permitted
+    }
+
+    void serveHEAD(const std::string& resource, const std::filesystem::path& serverRoot){}
+    void servePOST(const std::string& resource, const std::filesystem::path& serverRoot){}
+    void servePUT(const std::string& resource, const std::filesystem::path& serverRoot){}
+    void serveDELETE(const std::string& resource, const std::filesystem::path& serverRoot){}
 }

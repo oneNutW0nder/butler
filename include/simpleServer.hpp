@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <exception>
 #include <iostream>
-
+#include <filesystem>
 #include <cstring>
 
 #include <openssl/bio.h>
@@ -33,6 +33,7 @@ namespace server {
     }
 
     void init_ssl();
+    std::filesystem::path init_server();
     void ssl_errors(const char *str);
     void sendTo (BIO *bio, const std::string& resp);
     std::pair<std::string, std::string> parseResource(std::string reqTarget, const bool& absolute);
@@ -44,12 +45,12 @@ namespace server {
     std::string makeResponse(const std::string& code, const std::string& codeMsg, const std::string& content);
 
     // TODO: Support request params being sent around
-    void serveRequest(const std::string& resource, const std::string& method);
-    void serveGET(const std::string& resource);
-    void serveHEAD(const std::string& resource);
-    void servePOST(const std::string& resource);
-    void servePUT(const std::string& resource);
-    void serveDELETE(const std::string& resource);
+    void serveRequest(const std::string& resource, const std::string& method, const std::filesystem::path& serverRoot);
+    void serveGET(const std::string& resource, const std::filesystem::path& serverRoot);
+    void serveHEAD(const std::string& resource, const std::filesystem::path& serverRoot);
+    void servePOST(const std::string& resource, const std::filesystem::path& serverRoot);
+    void servePUT(const std::string& resource, const std::filesystem::path& serverRoot);
+    void serveDELETE(const std::string& resource, const std::filesystem::path& serverRoot);
 
     /**
      * Custom exception type. Used to throw exceptions with information used to
