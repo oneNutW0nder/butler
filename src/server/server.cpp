@@ -39,8 +39,10 @@ int main(const int argc, const char *argv[]){
         exit(0);
     }
 
+    auto serverRoot = server::init_server();
     server::init_ssl();
 
+    // Bind to the given IP and port
     auto listenBio = server::UniquePtr<BIO>(BIO_new_accept(fmt::format("{}:{}", ip, port).c_str()));
     if (BIO_do_accept(listenBio.get()) <= 0) {
         server::ssl_errors(fmt::format("FATAL: Could not bind to {} on port {}... exiting", ip, port).c_str());
@@ -53,10 +55,12 @@ int main(const int argc, const char *argv[]){
     };
     signal(SIGINT, [](int) { shutdown_server(); });
 
-    // Start the server loop!
     // TODO: --> Add in HTTPS bio chain
     //       --> Add in threading for handling requests
     std::cout << "Waiting for connections!" << std::endl;
+    std::cout << "Press Ctrl + C to shutdown" << std::endl;
+
+    // Start the server loop!
     while (auto bio = server::new_connection(listenBio.get())){
         try {
             // Read request and validate
@@ -69,7 +73,7 @@ int main(const int argc, const char *argv[]){
             auto resources = server::parseResource(valid.GetMReqTarget(), valid.GetMAbsoluteUri());
             std::cout << resources.first << " :: " << resources.second << std::endl;
             // TODO: switch on method type and do method things
-//            server::serveRequest(resources.first, valid.GetMMethod());
+            server::serveRequest(resources.first, valid.GetMMethod(), serverRoot);
 
             auto defResp = server::makeResponse("200", "OK", "Default content");
             server::sendTo(bio.get(), defResp);
