@@ -298,6 +298,7 @@ namespace server {
             tmp << fd.rdbuf();
             return makeResponse("200", "OK", tmp.str().append("<br>POST is WIP"), {});
         }
+        /** PUT METHOD **/
         else if (reqInfo->method == "PUT") {
             std::cout << "PUT request received..." << std::endl;
 
@@ -311,9 +312,16 @@ namespace server {
             return makeResponse("201", "Created", "", {{"Location", reqInfo->serverRoot}});
 
         }
+        /** DELETE METHOD **/
         else if (reqInfo->method == "DELETE") {
             std::cout << "DELETE request received..." << std::endl;
-            // DELETE SUPPORT
+
+            // Remove returns false if the file did not exist and true if it was deleted
+            if (!std::filesystem::remove(reqInfo->serverRoot += reqInfo->resource)) {
+                throw(httpException("The file you requested does not exist", 404, "Not Found"));
+            }
+
+            return makeResponse("200", "OK", "Successfully deleted the requested resource", {});
         }
         // Throw an exception here because we should never be in an invalidated state here
         throw(httpException("Extreme Fatal Error", 500, "Internal Server Error"));
