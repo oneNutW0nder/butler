@@ -170,18 +170,23 @@ namespace server {
         return server::UniquePtr<BIO>(BIO_pop(listenBIO));
     }
 
-    std::string makeResponse(const std::string& code, const std::string& codeMsg, const std::string& content) {
-        // TODO: Maybe add some more server headers??
+    std::string makeResponse(const std::string& code, const std::string& codeMsg,
+                             const std::string& content, const std::map<std::string, std::string>& otherHeaders) {
+        // TODO: Add DATE header and value to all responses
         // HTTP/1.1 CODE CODE_MSG
         std::string resp = fmt::format("HTTP/1.1 {} {}\r\n",  code, codeMsg);
         resp += fmt::format("Content-Length: {}\r\n", content.length());
+        resp += fmt::format("Content-Type: text/html\r\n");
+        for (auto &i : otherHeaders) {
+            resp += fmt::format("{}: {}\r\n", i.first, i.second);
+        }
         resp += fmt::format("\r\n");
         resp += content;
 
         return resp;
     }
 
-    // TODO: FIgure out a way to return params as well... might have to go back to a std::vector?
+    // TODO: Figure out a way to return params as well... might have to go back to a std::vector?
     std::pair<std::string, std::string> parseResource(std::string reqTarget, const bool& absolute) {
 
         int loc;
@@ -257,7 +262,7 @@ namespace server {
             // If we make it here read the requested file and send it
             std::stringstream tmp;
             tmp << fd.rdbuf();
-            return makeResponse("200", "OK", tmp.str());
+            return makeResponse("200", "OK", tmp.str(), {});
         }
         /** HEAD METHOD **/
         else if (reqInfo->method == "HEAD") {
@@ -269,7 +274,7 @@ namespace server {
             }
 
             // If we make it here we send a request with no body
-            return makeResponse("200", "OK", "");
+            return makeResponse("200", "OK", "", {});
         }
         /** POST METHOD **/
         else if (reqInfo->method == "POST") {
@@ -291,12 +296,20 @@ namespace server {
             // If we make it here read the requested file and send it
             std::stringstream tmp;
             tmp << fd.rdbuf();
-            return makeResponse("200", "OK", tmp.str().append("<br>POST is WIP"));
+            return makeResponse("200", "OK", tmp.str().append("<br>POST is WIP"), {});
         }
         else if (reqInfo->method == "PUT") {
             std::cout << "PUT request received..." << std::endl;
 
-            //  PUT support
+            // No need to check for the file existing because we will either create it or overwrite it
+            std::ofstream fd(reqInfo->serverRoot += reqInfo->resource, std::ios::trunc);
+            fd << reqInfo->body;
+//            fd.write(reqInfo->body.c_str(), reqInfo->body.length());
+            fd.close();
+
+            // Only supporting a 201 response for both creation and modified content
+            return makeResponse("201", "Created", "", {{"Location", reqInfo->serverRoot}});
+
         }
         else if (reqInfo->method == "DELETE") {
             std::cout << "DELETE request received..." << std::endl;

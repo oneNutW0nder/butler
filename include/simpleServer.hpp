@@ -52,7 +52,8 @@ namespace server {
     std::vector<std::string> split_headers(const std::string& text);
     server::UniquePtr<BIO> new_connection(BIO *listenBIO);
 
-    std::string makeResponse(const std::string& code, const std::string& codeMsg, const std::string& content);
+    std::string makeResponse(const std::string& code, const std::string& codeMsg,
+                             const std::string& content, const std::map<std::string, std::string>& otherHeaders);
 
     // TODO: Support request params being sent around
     std::string serveRequest(struct requestInfo* requestInfo);
