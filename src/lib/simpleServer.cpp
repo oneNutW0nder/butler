@@ -302,10 +302,27 @@ namespace server {
         else if (reqInfo->method == "PUT") {
             std::cout << "PUT request received..." << std::endl;
 
-            // No need to check for the file existing because we will either create it or overwrite it
-            std::ofstream fd(reqInfo->serverRoot += reqInfo->resource, std::ios::trunc);
+            // Check for existing file
+            if (!std::filesystem::exists(reqInfo->serverRoot += reqInfo->resource)) {
+                // Create directory chain for lots of non existent paths
+                // This will create a directory for the final resource as well but will be deleted later
+                if (!std::filesystem::create_directories(reqInfo->serverRoot)) {
+                    // Failure to create directories return 403
+                    throw(httpException("Failed to create file: Forbidden", 403, "Forbidden"));
+                }
+
+                // Delete final directory because that should be the file targeted by PUT
+                if (!std::filesystem::remove(reqInfo->serverRoot)) {
+                    // Failure to delete --> 403
+                    // Failed to create message displayed because this function is involved in
+                    //      the file creation process.... albeit janky
+                    throw(httpException("Failed to create file: Forbidden", 403, "Forbidden"));
+                }
+            }
+
+            // Finally create the file
+            std::ofstream fd(reqInfo->serverRoot, std::ios::trunc);
             fd << reqInfo->body;
-//            fd.write(reqInfo->body.c_str(), reqInfo->body.length());
             fd.close();
 
             // Only supporting a 201 response for both creation and modified content
@@ -317,7 +334,7 @@ namespace server {
             std::cout << "DELETE request received..." << std::endl;
 
             // Remove returns false if the file did not exist and true if it was deleted
-            if (!std::filesystem::remove(reqInfo->serverRoot += reqInfo->resource)) {
+            if (!std::filesystem::remove_all(reqInfo->serverRoot += reqInfo->resource)) {
                 throw(httpException("The file you requested does not exist", 404, "Not Found"));
             }
 
