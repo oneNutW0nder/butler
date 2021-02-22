@@ -10,6 +10,7 @@
 #include <filesystem>
 #include <cstring>
 #include <map>
+#include <mutex>
 
 #include <openssl/bio.h>
 #include <openssl/err.h>
@@ -17,8 +18,10 @@
 
 namespace server {
 
-    const std::string SERVER_ROOT = "butler-server"; // Folder name used as root dir
-    const std::string DEFAULT_SERVER_NAME  = "localhost";     // Name of the server for HOST checking
+    const std::string SERVER_ROOT = "butler-server";        // Folder name used as root dir
+    const std::string DEFAULT_SERVER_NAME  = "localhost";   // Name of the server for HOST checking
+
+    std::mutex mut;
 
     // Special deleter functions used alongside smart pointers
     template<typename T> struct DeleterOf;
@@ -46,9 +49,11 @@ namespace server {
     };
 
     void init_ssl();
-    std::filesystem::path init_server();
     void ssl_errors(const char *str);
     void sendTo (BIO *bio, const std::string& resp);
+    void requestHandler(UniquePtr<BIO> bio, std::string serverRoot, const bool& https);
+
+    std::filesystem::path init_server();
     std::pair<std::string, std::string> parseResource(std::string reqTarget, const bool& absolute);
     std::string receiveChunk(BIO *bio, const bool& https);
     std::string receive_http_message(BIO *bio, const bool& https);
