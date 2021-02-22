@@ -17,6 +17,9 @@
 
 namespace server {
 
+    const std::string SERVER_ROOT = "butler-server"; // Folder name used as root dir
+    const std::string DEFAULT_SERVER_NAME  = "localhost";     // Name of the server for HOST checking
+
     // Special deleter functions used alongside smart pointers
     template<typename T> struct DeleterOf;
     template<> struct DeleterOf<SSL_CTX> { void operator() (SSL_CTX *p) const { SSL_CTX_free(p); } };
