@@ -69,8 +69,6 @@ int main(const int argc, const char *argv[]){
     };
     signal(SIGINT, [](int) { shutdown_server(); });
 
-    // TODO: --> Add in HTTPS bio chain
-    //       --> Add in threading for handling requests
     std::cout << "Waiting for connections!" << std::endl;
     std::cout << "Press Ctrl + C to shutdown" << std::endl;
 
