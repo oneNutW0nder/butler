@@ -25,7 +25,6 @@ int main(const int argc, const char *argv[]){
 
     auto ip = args.retrieve<std::string>("ip");
     auto port = args.retrieve<std::string>("port");
-
     auto cert = args.retrieve<std::string>("cert");
     auto pem = args.retrieve<std::string>("key");
 

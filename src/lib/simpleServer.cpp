@@ -7,7 +7,8 @@
 
 namespace server {
 
-#define SERVER_ROOT     "butler-server"
+#define SERVER_ROOT         "butler-server" // Folder name used as root dir
+#define DEFAULT_SERVER_NAME "localhost"     // Name of the server for HOST checking
 
 
     // Load openssl
@@ -65,7 +66,7 @@ namespace server {
     /**
      * Reads a chunk of 1024 bytes from a BIO. Throws
      * std::runtime_error if a problem occurs
-     * https://quuxplusone.github.io/blog/2020/01/24/openssl-part-1/
+     * Adapted from: https://quuxplusone.github.io/blog/2020/01/24/openssl-part-1/
      *
      * @param bio --> BIO to read from
      * @return --> Data read from the BIO
@@ -74,6 +75,8 @@ namespace server {
         char buffer[1024];
         int len = BIO_read(bio, buffer, sizeof(buffer));
         // Check for TLS conn attempt in HTTP mode
+        // This does not display anything to the user but it "frees" the connection
+        // Users will see a "secure connection failed" message in the browser
         if (!https) {
             if (buffer[0] == '\026' && buffer[1] == '\003' && buffer[2] == '\001') {
                 throw(httpException("General Failure", 500, "Internal Server Error"));
@@ -123,7 +126,6 @@ namespace server {
         std::string contentLen = "Content-length";
         std::transform(contentLen.begin(), contentLen.end(), contentLen.begin(), ::tolower);
         std::string headers = server::receiveChunk(bio, https);
-        // Check to see if HTTPS request received when in HTTP mode
         char *end_of_headers = strstr(&headers[0], "\r\n\r\n");
         while (end_of_headers == nullptr) {
             headers += server::receiveChunk(bio, https);
@@ -246,7 +248,6 @@ namespace server {
     }
 
 
-    // TODO: Support request params being sent around
     // Implement each method and return the correct response
     std::string serveRequest(struct requestInfo* reqInfo){
         /** GET METHOD **/
