@@ -181,7 +181,7 @@ std::unordered_set<std::string> http::Request::parseHtml(const std::string &rgx)
     std::unordered_set<std::string> unqVals = {};
     std::regex re(rgx, std::regex::ECMAScript);
     for (std::sregex_iterator it = std::sregex_iterator(this->m_resp_body.begin(), this->m_resp_body.end(), re);
-         it != std::sregex_iterator(); it++) {
+        it != std::sregex_iterator(); it++) {
         unqVals.insert(it->str(0));
     }
 
