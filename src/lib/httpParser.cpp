@@ -140,7 +140,8 @@ void httpParser::Validator::validateHeaders(std::string s) {
     }
 
     // Verify that the HOST header matches the DEFAULT_SERVER_NAME
-    if (this->m_host != server::DEFAULT_SERVER_NAME) {
+    // Note: hackable
+    if (this->m_host.find(server::DEFAULT_SERVER_NAME) == std::string::npos) {
         throw(server::httpException("Invalid Request", 400, "Bad Request"));
     }
 
