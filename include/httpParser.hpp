@@ -24,7 +24,6 @@ namespace httpParser{
     class Validator {
 
     private:
-        // TODO: Add getters for x
         std::string m_method;
         std::string m_req_target;
         std::string m_version;

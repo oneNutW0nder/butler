@@ -37,7 +37,7 @@ httpParser::Validator::Validator(std::string &request){
  * Handles the validation of the request headers. There are many attempts
  * to follow the RFC (2616/7230/7231) in here.
  *
- * @param s
+ * @param s --> The request with the request-line stripped from it (should only contain headers now)
  */
 void httpParser::Validator::validateHeaders(std::string s) {
 
