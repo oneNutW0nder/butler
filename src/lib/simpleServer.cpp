@@ -70,15 +70,21 @@ namespace server {
      * @param bio --> BIO to read from
      * @return --> Data read from the BIO
      */
-    std::string receiveChunk(BIO *bio) {
+    std::string receiveChunk(BIO *bio, const bool& https) {
         char buffer[1024];
         int len = BIO_read(bio, buffer, sizeof(buffer));
+        // Check for TLS conn attempt in HTTP mode
+        if (!https) {
+            if (buffer[0] == '\026' && buffer[1] == '\003' && buffer[2] == '\001') {
+                throw(httpException("General Failure", 500, "Internal Server Error"));
+            }
+        }
         if (len < 0) {
             throw(std::runtime_error("ERROR reading from BIO"));
         } else if (len > 0) {
             return std::string(buffer, len);
         } else if (BIO_should_retry(bio)) {
-            return receiveChunk(bio);
+            return receiveChunk(bio, https);
         } else {
             throw(std::runtime_error("ERROR reading from empty BIO"));
         }
@@ -113,13 +119,14 @@ namespace server {
      * @param bio --> pointer to BIO to read from
      * @return --> String representation of the HTTP request
      */
-    std::string receive_http_message(BIO *bio) {
+    std::string receive_http_message(BIO *bio, const bool& https) {
         std::string contentLen = "Content-length";
         std::transform(contentLen.begin(), contentLen.end(), contentLen.begin(), ::tolower);
-        std::string headers = server::receiveChunk(bio);
+        std::string headers = server::receiveChunk(bio, https);
+        // Check to see if HTTPS request received when in HTTP mode
         char *end_of_headers = strstr(&headers[0], "\r\n\r\n");
         while (end_of_headers == nullptr) {
-            headers += server::receiveChunk(bio);
+            headers += server::receiveChunk(bio, https);
             end_of_headers = strstr(&headers[0], "\r\n\r\n");
         }
         std::string body = std::string(end_of_headers+4, &headers[headers.size()]);
@@ -134,7 +141,7 @@ namespace server {
             }
         }
         while (body.size() < content_length) {
-            body += server::receiveChunk(bio);
+            body += server::receiveChunk(bio, https);
         }
         return headers + "\r\n" + body;
     }
@@ -242,11 +249,8 @@ namespace server {
     // TODO: Support request params being sent around
     // Implement each method and return the correct response
     std::string serveRequest(struct requestInfo* reqInfo){
-        // We have to check for 404 for each method because some methods don't need a file to exist
-
         /** GET METHOD **/
         if (reqInfo->method == "GET") {
-            std::cout << "GET request received..." << std::endl;
             // check for: 404 File not found!
             if (!std::filesystem::exists(reqInfo->serverRoot += reqInfo->resource)) {
                 throw(httpException("The file you requested does not exist", 404, "Not Found"));
@@ -266,7 +270,6 @@ namespace server {
         }
         /** HEAD METHOD **/
         else if (reqInfo->method == "HEAD") {
-            std::cout << "HEAD request received..." << std::endl;
             // check for: 404 File not found!
             if (!std::filesystem::exists(reqInfo->serverRoot += reqInfo->resource)) {
                 // Throw with no "err_msg" beacuse HEAD response should have no body
@@ -278,9 +281,7 @@ namespace server {
         }
         /** POST METHOD **/
         else if (reqInfo->method == "POST") {
-            std::cout << "POST request received..." << std::endl;
             // TODO: Make this real POST method... For now make it the same as GET
-
             // check for: 404 File not found!
             if (!std::filesystem::exists(reqInfo->serverRoot += reqInfo->resource)) {
                 throw(httpException("The file you requested does not exist", 404, "Not Found"));
@@ -300,8 +301,6 @@ namespace server {
         }
         /** PUT METHOD **/
         else if (reqInfo->method == "PUT") {
-            std::cout << "PUT request received..." << std::endl;
-
             // Check for existing file
             if (!std::filesystem::exists(reqInfo->serverRoot += reqInfo->resource)) {
                 // Create directory chain for lots of non existent paths
@@ -327,12 +326,9 @@ namespace server {
 
             // Only supporting a 201 response for both creation and modified content
             return makeResponse("201", "Created", "", {{"Location", reqInfo->serverRoot}});
-
         }
         /** DELETE METHOD **/
         else if (reqInfo->method == "DELETE") {
-            std::cout << "DELETE request received..." << std::endl;
-
             // Remove returns false if the file did not exist and true if it was deleted
             if (!std::filesystem::remove_all(reqInfo->serverRoot += reqInfo->resource)) {
                 throw(httpException("The file you requested does not exist", 404, "Not Found"));
