@@ -139,8 +139,10 @@ void httpParser::Validator::validateHeaders(std::string s) {
         }
     }
 
-    // TODO: match host header value to the server name
-    //       this will be done next assignment when we have a real server
+    // Verify that the HOST header matches the DEFAULT_SERVER_NAME
+    if (this->m_host != server::DEFAULT_SERVER_NAME) {
+        throw(server::httpException("Invalid Request", 400, "Bad Request"));
+    }
 
     // Do not allow both transfer-encoding and content-length
     if (this->m_transfer_encoding && this->m_content_length != -1){
