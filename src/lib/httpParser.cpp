@@ -182,7 +182,6 @@ bool httpParser::Validator::validateRequestTarget(const std::string& reqTarget){
     // asterisk-form  = "*" --> Only used in OPTIONS **NOT USED**
 
     // Quick check for single "/" (origin-form)
-    // TODO: this feels like such a cheep check
     if (reqTarget.find('/') == 0 && !reqTarget.empty()){
         this->m_req_target = reqTarget;
         return true;
@@ -233,7 +232,7 @@ void httpParser::Validator::validateRequestLine(std::string reqLine) {
     }
 
     // Validate HTTP version
-    if (tokens[2] != "HTTP/1.1" && tokens[2] != "HTTP/1.0"){
+    if (tokens[2] != "HTTP/1.1"){
         throw(server::httpException("Version not supported", 505, "HTTP Version Not Supported"));
     }
 
