@@ -21,7 +21,7 @@ namespace server {
     std::filesystem::path init_server() {
         char* home;
         if ((home = getenv("HOME")) == nullptr) {
-            std::cerr << "FATAL: Please set the $HOME env variable... exiting" << std::endl;
+            std::cerr << "[!] FATAL: Please set the $HOME env variable... exiting" << std::endl;
             exit(11);
         }
 
@@ -30,7 +30,7 @@ namespace server {
         // Create server root if doesn't exist
         if (!std::filesystem::exists(serverRoot)) {
             if (!std::filesystem::create_directory(serverRoot)) {
-                std::cerr << "FATAL: Failed to create server root at $HOME/butler... exiting" << std::endl;
+                std::cerr << "[!] FATAL: Failed to create server root at $HOME/butler... exiting" << std::endl;
                 exit(12);
             }
         }
@@ -39,7 +39,7 @@ namespace server {
         if (!std::filesystem::exists(serverRoot / "index.html")) {
             std::ofstream helloFile(serverRoot / "index.html", std::ofstream::out);
             if (!helloFile.is_open()) {
-                std::cerr << "FATAL: Failed to create default index.html at $HOME/butler/index.html... exiting" << std::endl;
+                std::cerr << "[!] FATAL: Failed to create default index.html at $HOME/butler/index.html... exiting" << std::endl;
                 exit(13);
             }
 
@@ -48,8 +48,8 @@ namespace server {
             helloFile.close();
         }
 
-        std::cout << "Server initialization finished." << std::endl;
-        std::cout << "Server Root at: "<< serverRoot << std::endl;
+        std::cout << "[+] Server initialization finished." << std::endl;
+        std::cout << "[+] Server Root at: "<< serverRoot << std::endl;
 
         return serverRoot;
     }
@@ -296,7 +296,7 @@ namespace server {
             // If we make it here read the requested file and send it
             std::stringstream tmp;
             tmp << fd.rdbuf();
-            return makeResponse("200", "OK", tmp.str().append("<br>POST is WIP"), {});
+            return makeResponse("200", "OK", tmp.str().append("<br>POST is WIP" + reqInfo->body), {});
         }
         /** PUT METHOD **/
         else if (reqInfo->method == "PUT") {

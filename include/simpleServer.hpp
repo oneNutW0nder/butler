@@ -37,8 +37,8 @@ namespace server {
     struct requestInfo {
         std::string method;
         std::string resource;
-        std::map<std::string, std::string> params;
-        std::string body;
+        std::map<std::string, std::string> params; // Params from request-target
+        std::string body;                          // Body will contain POST params for POST
         std::string serverRoot;
     };
 
