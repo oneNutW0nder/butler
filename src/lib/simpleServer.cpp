@@ -7,10 +7,6 @@
 
 namespace server {
 
-#define SERVER_ROOT         "butler-server" // Folder name used as root dir
-#define DEFAULT_SERVER_NAME "localhost"     // Name of the server for HOST checking
-
-
     // Load openssl
     void init_ssl(){
         SSL_library_init();
