@@ -79,7 +79,7 @@ namespace server {
         // Users will see a "secure connection failed" message in the browser
         if (!https) {
             if (buffer[0] == '\026' && buffer[1] == '\003' && buffer[2] == '\001') {
-                throw(httpException("General Failure", 500, "Internal Server Error"));
+                throw(httpException("Attempted HTTPS connection on HTTP only server", 400, "Bad Request"));
             }
         }
         if (len < 0) {
