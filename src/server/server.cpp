@@ -80,24 +80,29 @@ int main(const int argc, const char *argv[]){
         }
         try {
             // Read request and validate
-            std::cout << "Connection Received" << std::endl;
-            std::string req = server::receive_http_message(bio.get());
+            std::string req = server::receive_http_message(bio.get(), https);
+//            uint8_t buffer[1024] = {};
+//            auto req = BIO_read(bio.get(), buffer, 10);
+//            std::cout << buffer << std::endl << std::endl;
+            std::cout << req << std::endl << std::endl;
 
-            // Validate and get resource/params
-            auto valid = httpParser::Validator(req);
-            auto resources = server::parseResource(valid.GetMReqTarget(), valid.GetMAbsoluteUri());
-            std::cout << resources.first << " :: " << resources.second << std::endl;
 
-            // Create a requestInfo struct to pass around
-            server::requestInfo reqInfo;
-            reqInfo.method = valid.GetMMethod();
-            reqInfo.resource = resources.first;
-            reqInfo.params = {};   // TODO: Will be dependent on parsing params from request-target URIs
-            reqInfo.body = valid.GetMBody();
-            reqInfo.serverRoot = serverRoot;
-
-            auto resp = server::serveRequest(&reqInfo);
-            server::sendTo(bio.get(), resp);
+//            // Validate and get resource/params
+//            auto valid = httpParser::Validator(req);
+//            // TODO: Log this information to a file
+//            std::cout << fmt::format("[+] Received request: {} {}", valid.GetMMethod(), valid.GetMReqTarget()) << std::endl;
+//            auto resources = server::parseResource(valid.GetMReqTarget(), valid.GetMAbsoluteUri());
+//
+//            // Create a requestInfo struct to pass around
+//            server::requestInfo reqInfo;
+//            reqInfo.method = valid.GetMMethod();
+//            reqInfo.resource = resources.first;
+//            reqInfo.params = {};   // TODO: Will be dependent on parsing params from request-target URIs
+//            reqInfo.body = valid.GetMBody();
+//            reqInfo.serverRoot = serverRoot;
+//
+//            auto resp = server::serveRequest(&reqInfo);
+//            server::sendTo(bio.get(), resp);
         }
         // Catch custom server exceptions that contain info about error type and message
         catch (server::httpException& e) {
