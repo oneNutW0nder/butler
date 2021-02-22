@@ -29,14 +29,28 @@ int main(const int argc, const char *argv[]){
     auto cert = args.retrieve<std::string>("cert");
     auto pem = args.retrieve<std::string>("key");
 
-    bool https = false;
-    if (!cert.empty() && !pem.empty()){
-        https = true;
-    }
-    else if (!cert.empty() && pem.empty()){
+    if (!cert.empty() && pem.empty()){
         std::cerr << "ERROR: Provided certificate but no matching private key given..." << std::endl;
         std::cerr << args.usage();
         exit(0);
+    }
+
+    bool https = false;
+    auto ctx = server::UniquePtr<SSL_CTX>(SSL_CTX_new(TLS_method()));
+    if (!cert.empty() && !pem.empty()){
+        // Setup HTTPS/TLS things
+        https = true;
+        SSL_CTX_set_min_proto_version(ctx.get(), TLS1_2_VERSION);
+        if (SSL_CTX_use_certificate_file(ctx.get(), cert.c_str(), SSL_FILETYPE_PEM) <= 0) {
+            server::ssl_errors("[!] Failed to load cert file... exiting");
+        }
+        if (SSL_CTX_use_PrivateKey_file(ctx.get(), pem.c_str(), SSL_FILETYPE_PEM) <= 0) {
+            server::ssl_errors("[!] Failed to load private key file... exiting");
+        }
+
+        std::cout << "[+] Executing in HTTPS mode" << std::endl;
+    } else {
+        std::cout << "[+] Executing in HTTP mode" << std::endl;
     }
 
     auto serverRoot = server::init_server();
@@ -62,6 +76,10 @@ int main(const int argc, const char *argv[]){
 
     // Start the server loop!
     while (auto bio = server::new_connection(listenBio.get())){
+        // If HTTPS push an SLL BIO into the chain
+        if (https) {
+            bio = std::move(bio) | server::UniquePtr<BIO>(BIO_new_ssl(ctx.get(), 0));
+        }
         try {
             // Read request and validate
             std::cout << "Connection Received" << std::endl;
@@ -69,7 +87,6 @@ int main(const int argc, const char *argv[]){
 
             // Validate and get resource/params
             auto valid = httpParser::Validator(req);
-            // TODO: finish param/resource parsing
             auto resources = server::parseResource(valid.GetMReqTarget(), valid.GetMAbsoluteUri());
             std::cout << resources.first << " :: " << resources.second << std::endl;
 
@@ -77,11 +94,10 @@ int main(const int argc, const char *argv[]){
             server::requestInfo reqInfo;
             reqInfo.method = valid.GetMMethod();
             reqInfo.resource = resources.first;
-            reqInfo.params = {};   // TODO: Will be dependent on GET params or POST body params
+            reqInfo.params = {};   // TODO: Will be dependent on parsing params from request-target URIs
             reqInfo.body = valid.GetMBody();
             reqInfo.serverRoot = serverRoot;
 
-            // TODO: switch on method type and do method things
             auto resp = server::serveRequest(&reqInfo);
             server::sendTo(bio.get(), resp);
         }
