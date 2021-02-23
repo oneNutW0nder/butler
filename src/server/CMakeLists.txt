@@ -2,6 +2,6 @@ include_directories(../../include)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-add_executable(server server.cpp ../../include/simpleServer.hpp)
+add_executable(server server.cpp)
 
-target_link_libraries(server httpparser simpleServer util argparse ssl crypto fmt pthread)
+target_link_libraries(server simpleServer httpparser util argparse ssl crypto fmt pthread)
