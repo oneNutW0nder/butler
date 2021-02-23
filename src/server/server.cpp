@@ -34,11 +34,12 @@ int main(const int argc, const char *argv[]){
         exit(0);
     }
 
+    // Setup HTTPS/TLS things if needed
     bool https = false;
     auto ctx = server::UniquePtr<SSL_CTX>(SSL_CTX_new(TLS_method()));
     if (!cert.empty() && !pem.empty()){
-        // Setup HTTPS/TLS things
         https = true;
+        server::init_ssl();
         SSL_CTX_set_min_proto_version(ctx.get(), TLS1_2_VERSION);
         if (SSL_CTX_use_certificate_file(ctx.get(), cert.c_str(), SSL_FILETYPE_PEM) <= 0) {
             server::ssl_errors("[!] Failed to load cert file... exiting");
@@ -46,14 +47,12 @@ int main(const int argc, const char *argv[]){
         if (SSL_CTX_use_PrivateKey_file(ctx.get(), pem.c_str(), SSL_FILETYPE_PEM) <= 0) {
             server::ssl_errors("[!] Failed to load private key file... exiting");
         }
-
         std::cout << "[+] Executing in HTTPS mode" << std::endl;
     } else {
         std::cout << "[+] Executing in HTTP mode" << std::endl;
     }
 
     auto serverRoot = server::init_server();
-    server::init_ssl();
 
     // Bind to the given IP and port
     auto listenBio = server::UniquePtr<BIO>(BIO_new_accept(fmt::format("{}:{}", ip, port).c_str()));
@@ -78,10 +77,15 @@ int main(const int argc, const char *argv[]){
             bio = std::move(bio) | server::UniquePtr<BIO>(BIO_new_ssl(ctx.get(), 0));
         }
 
-        // Thread the responding of requests
-        // Openssl BIOs support multiple connections with this method
-        std::thread i(server::requestHandler, std::move(bio), serverRoot, std::ref(https));
-        i.join();
+        server::requestHandler(std::move(bio), serverRoot, https);
+
+        // This "threading" is actually sequential and less efficient than the above function call
+        // The connection acception method used in this loop supports concurrent connections
+        //      while the serving of requests happens sequentially.
+
+        /* The thread below by itself seg faults and is slower version of sequential if you join() */
+//        std::thread i(server::requestHandler, std::move(bio), serverRoot, std::ref(https));
+//        i.join();
 
     }
 
