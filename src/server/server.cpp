@@ -77,7 +77,7 @@ int main(const int argc, const char *argv[]){
             bio = std::move(bio) | server::UniquePtr<BIO>(BIO_new_ssl(ctx.get(), 0));
         }
 
-        server::requestHandler(std::move(bio), serverRoot, https);
+        server::requestHandler(std::move(bio), serverRoot, https, port);
 
         // This "threading" is actually sequential and less efficient than the above function call
         // The connection acception method used in this loop supports concurrent connections
