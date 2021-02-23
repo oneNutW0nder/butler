@@ -326,8 +326,19 @@ namespace server {
             fd << reqInfo->body;
             fd.close();
 
+            // Build location absolute-URI
+            std::string loc;
+            if (reqInfo->https) {
+                loc = "https://";
+            } else {
+                loc = "http://";
+            }
+
+            loc.append(DEFAULT_SERVER_NAME);
+            loc.append(reqInfo->resource);
+
             // Only supporting a 201 response for both creation and modified content
-            return makeResponse("201", "Created", "", {{"Location", reqInfo->serverRoot}});
+            return makeResponse("201", "Created", "", {{"Location", loc}});
         }
         /** DELETE METHOD **/
         else if (reqInfo->method == "DELETE") {
@@ -343,7 +354,7 @@ namespace server {
     }
 
 
-    void requestHandler(UniquePtr<BIO> bio, std::string serverRoot, const bool& https) {
+    void requestHandler(UniquePtr<BIO> bio, std::string serverRoot, const bool& https, const std::string& port) {
 
         try {
             std::string req = server::receive_http_message(bio.get(), https);
@@ -368,6 +379,8 @@ namespace server {
             reqInfo.params = {};   // TODO: Will be dependent on parsing params from request-target URIs
             reqInfo.body = valid.GetMBody();
             reqInfo.serverRoot = std::move(serverRoot);
+            reqInfo.https = https;
+            reqInfo.port = port;
 
             // Send response
             auto resp = server::serveRequest(&reqInfo);

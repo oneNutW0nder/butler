@@ -46,12 +46,15 @@ namespace server {
         std::map<std::string, std::string> params; // Params from request-target
         std::string body;                          // Body will contain POST params for POST
         std::string serverRoot;
+        std::string host;
+        std::string port;
+        bool https;
     };
 
     void init_ssl();
     void ssl_errors(const char *str);
     void sendTo (BIO *bio, const std::string& resp);
-    void requestHandler(UniquePtr<BIO> bio, std::string serverRoot, const bool& https);
+    void requestHandler(UniquePtr<BIO> bio, std::string serverRoot, const bool& https, const std::string& port);
 
     std::filesystem::path init_server();
     std::pair<std::string, std::string> parseResource(std::string reqTarget, const bool& absolute);
