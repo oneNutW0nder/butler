@@ -16,8 +16,11 @@ namespace server {
         SSL_load_error_strings();
     }
 
-    // Initialize the server
-    // Server Root: $HOME/butler
+    /**
+     * Initialize the server and return the serverRoot dir.
+     *
+     * @return --> The root directory for the server default: "$HOME/butler-server"
+     */
     std::filesystem::path init_server() {
         char *home;
         if ((home = getenv("HOME")) == nullptr) {
@@ -68,6 +71,7 @@ namespace server {
      * Adapted from: https://quuxplusone.github.io/blog/2020/01/24/openssl-part-1/
      *
      * @param bio --> BIO to read from
+     *
      * @return --> Data read from the BIO
      */
     std::string receiveChunk(BIO *bio, const bool &https) {
@@ -98,6 +102,7 @@ namespace server {
      * https://quuxplusone.github.io/blog/2020/01/24/openssl-part-1/
      *
      * @param text --> Request headers for splitting
+     *
      * @return --> vector of split headers
      */
     std::vector<std::string> split_headers(const std::string &text) {
@@ -119,6 +124,7 @@ namespace server {
      * https://quuxplusone.github.io/blog/2020/01/24/openssl-part-1/
      *
      * @param bio --> pointer to BIO to read from
+     *
      * @return --> String representation of the HTTP request
      */
     std::string receive_http_message(BIO *bio, const bool &https) {
@@ -169,6 +175,7 @@ namespace server {
      * https://quuxplusone.github.io/blog/2020/01/24/openssl-part-1/
      *
      * @param listenBIO --> The BIO where you are doing the listening
+     *
      * @return --> returns the new connection BIO or nullptr if failed
      */
     server::UniquePtr<BIO> new_connection(BIO *listenBIO) {
@@ -178,6 +185,18 @@ namespace server {
         return server::UniquePtr<BIO>(BIO_pop(listenBIO));
     }
 
+    /**
+     * Constructs a response for the server to send back to the client. It takes in
+     * necessary parameters like the status code, status msg, and any content for the
+     * body.
+     *
+     * @param code          --> HTTP status code
+     * @param codeMsg       --> HTTP status code message
+     * @param content       --> Content to return in response body
+     * @param otherHeaders  --> And aditional headers to include in the response
+     *
+     * @return              --> response as a string
+     */
     std::string makeResponse(const std::string &code, const std::string &codeMsg,
                              const std::string &content, const std::map<std::string, std::string> &otherHeaders) {
         // TODO: Add DATE header and value to all responses
@@ -202,8 +221,18 @@ namespace server {
         return resp;
     }
 
-    // TODO: Figure out a way to return params as well... might have to go back to a std::vector?
+
+    /**
+     * Takes in a request-target from a request and parses it for the
+     * requested resource.
+     *
+     * @param reqTarget --> request-target from a request
+     * @param absolute  --> Whether or not the request-target is an absolute-uri
+     *
+     * @return  --> a pair of <resource, params>
+     */
     std::pair<std::string, std::string> parseResource(std::string reqTarget, const bool &absolute) {
+        // TODO: Figure out a way to return params as well... might have to go back to a std::vector?
 
         int loc;
         std::string params;
@@ -255,7 +284,16 @@ namespace server {
     }
 
 
-    // Implement each method and return the correct response
+    /**
+     * Takes in a struct of requestInfo that contains all the pertinent
+     * information about a request. This function handles serving each
+     * support method and returns the appropriate error response if
+     * an error is encountered.
+     *
+     * @param reqInfo   --> requestInfo struct of information
+     *
+     * @return  --> returns a response to send back to the client
+     */
     std::string serveRequest(struct requestInfo *reqInfo) {
         // Lock this entire method because of the filesystem operations
         std::lock_guard<std::mutex> lk(mut);
@@ -365,6 +403,16 @@ namespace server {
     }
 
 
+    /**
+     * This function handles the validation, parsing, and serving of a request.
+     * This could be used to implement true threading in the future, but for now
+     * we can handle ~20k requests in a little over a second.
+     *
+     * @param bio           --> BIO representing the current connection
+     * @param serverRoot    --> the root of the server
+     * @param https         --> whether or not we are in HTTPS mode
+     * @param port          --> Port for the server
+     */
     void requestHandler(UniquePtr<BIO> bio, std::string serverRoot, const bool &https, const std::string &port) {
 
         try {
