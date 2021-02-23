@@ -213,10 +213,10 @@ namespace server {
             // Strip off scheme for https:// || http://
             if ((loc = reqTarget.find("https://")) != std::string::npos) {
                 // strip off https:// scheme
-                reqTarget.erase(0, 7);
+                reqTarget.erase(0, 8);
             } else {
                 // Stip off http:// scheme
-                reqTarget.erase(0, 6);
+                reqTarget.erase(0, 7);
             }
 
             // Check for "/"
