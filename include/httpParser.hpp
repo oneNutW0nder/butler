@@ -63,16 +63,8 @@ namespace httpParser{
             return this->m_body;
         }
 
-        [[nodiscard]] std::string GetMHost() {
-            return this->m_host;
-        }
-
         [[nodiscard]] bool GetMAbsoluteUri() const {
             return this->m_absolute_uri;
-        }
-
-        [[nodiscard]] std::map<std::string, std::string> GetMHeaders() {
-            return this->m_headers;
         }
 
     };

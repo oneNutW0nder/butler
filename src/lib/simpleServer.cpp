@@ -184,7 +184,7 @@ namespace server {
         // HTTP/1.1 CODE CODE_MSG
         // Get date
         char buff[100];
-        time_t now = time(0);
+        time_t now = time(nullptr);
         struct tm tm = *gmtime(&now);
         strftime(buff, sizeof(buff), "%a, %d %b %Y %H:%M:%S %Z", &tm);
 
