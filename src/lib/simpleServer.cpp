@@ -299,7 +299,7 @@ namespace server {
             // If we make it here read the requested file and send it
             std::stringstream tmp;
             tmp << fd.rdbuf();
-            return makeResponse("200", "OK", tmp.str().append("<br>POST is WIP" + reqInfo->body), {});
+            return makeResponse("200", "OK", tmp.str().append("<br>POST is WIP " + reqInfo->body), {});
         }
         /** PUT METHOD **/
         else if (reqInfo->method == "PUT") {
@@ -352,6 +352,13 @@ namespace server {
             auto valid = httpParser::Validator(req);
             auto resources = server::parseResource(valid.GetMReqTarget(), valid.GetMAbsoluteUri());
 
+            // Log to log file and include response code
+            mut.lock();
+            std::ofstream log("./butler.log", std::ios::app);
+            log << fmt::format("{} {} {}\n", valid.GetMMethod(), valid.GetMReqTarget(), valid.GetMVersion());
+            log.close();
+            mut.unlock();
+
             std::cout << fmt::format("[+] Received request: {} {}", valid.GetMMethod(), valid.GetMReqTarget()) << std::endl;
 
             // Create a requestInfo struct to pass around
@@ -364,6 +371,8 @@ namespace server {
 
             // Send response
             auto resp = server::serveRequest(&reqInfo);
+
+
             server::sendTo(bio.get(), resp);
         }
         // Catch custom server exceptions that contain info about error type and message
