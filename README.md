@@ -28,7 +28,7 @@ cmake ..
 make
 ```
 
-The commands above will compile both the `client` and `parser` binaries. In order to compile just the one you like do the following:
+The commands above will compile all the binaries. In order to compile just the one you like do the following:
 
 **Client**
 ```
@@ -47,4 +47,20 @@ cmake ..;    # if you haven't created the make file yet
 make parser
 ./bin/parser <path_to_file_containing_http_request>
 ```
-    
+
+**Server**
+```
+mkdir build; # if you haven't made this directory already
+cd build;    # if you aren't already in the ./build directory
+cmake ..;    # if you haven't created the make file yet
+make server
+./bin/server --ip IP --port PORT [--cert CERT --key KEY]
+```
+
+Notes about the server:
+   - The server will create its root in `$HOME/butler-server` so it will need to have the correct permissions. A default `index.html` will also be written to that directory so that you can immediately test functionality.
+   - As of right now, the `POST` method responds just like a `GET` request but will also display the body of the request in its response. This will be changed in the next assignment when we implement PHP.
+   - If the server is operating in _HTTP_ mode and an _HTTPS_ request is made, the server will send back a `400 Bad Request` message which the browser will display as `Secure Connection Failed`. This cleanly handles the attempted connection and frees up the socket to handle the next request.
+   - While the code may not explicitly show it, it does support multiple connections. I tried to thread the `requestHandler()` function but could not get it to be truly threaded without segfaults occuring. I was able to stress test the server (_see screenshot below_) and acheive very good results so I hope this is acceptable.
+
+![performance with httperf](httperf_performance.png)
