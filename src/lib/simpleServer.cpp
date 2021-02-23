@@ -352,12 +352,13 @@ namespace server {
         }
             /** DELETE METHOD **/
         else if (reqInfo->method == "DELETE") {
-            // Remove returns false if the file did not exist and true if it was deleted
+            // Remove returns false if the delete failed and true if it was deleted
             if (!std::filesystem::remove_all(reqInfo->serverRoot += reqInfo->resource)) {
-                throw (httpException("The file you requested does not exist", 404, "Not Found"));
+                // Return 500 because we can't determine exactly why it failed
+                throw (httpException("An error has occurred. Please contact the system admin.", 500, "Internal Server Error"));
             }
 
-            return makeResponse("200", "OK", "Successfully deleted the requested resource", {});
+            return makeResponse("200", "OK", "Successfully deleted the requested resource :: " + reqInfo->resource, {});
         }
         // Throw an exception here because we should never be in an invalidated state here
         throw (httpException("Extreme Fatal Error", 500, "Internal Server Error"));
