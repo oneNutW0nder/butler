@@ -16,6 +16,10 @@
 #include <openssl/err.h>
 #include <openssl/ssl.h>
 
+/**
+ * Contains function and type definitions used in the operation
+ * of an HTTP/HTTPS server.
+ */
 namespace server {
 
     const std::string SERVER_ROOT = "butler-server";        // Folder name used as root dir
