@@ -1,7 +1,6 @@
 #include <iostream>
 #include <csignal>
 #include <string>
-#include <thread>
 
 #include <unistd.h>
 #include <fmt/format.h>
@@ -76,17 +75,7 @@ int main(const int argc, const char *argv[]) {
         if (https) {
             bio = std::move(bio) | server::UniquePtr<BIO>(BIO_new_ssl(ctx.get(), 0));
         }
-
-        server::requestHandler(std::move(bio), serverRoot, https, port);
-
-        // This "threading" is actually sequential and less efficient than the above function call
-        // The connection acception method used in this loop supports concurrent connections
-        //      while the serving of requests happens sequentially.
-
-        /* The thread below by itself seg faults and is slower version of sequential if you join() */
-//        std::thread i(server::requestHandler, std::move(bio), serverRoot, std::ref(https));
-//        i.join();
-
+        server::requestHandler(bio.get(), serverRoot, https, port);
     }
     return 0;
 }

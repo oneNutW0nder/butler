@@ -413,10 +413,10 @@ namespace server {
      * @param https         --> whether or not we are in HTTPS mode
      * @param port          --> Port for the server
      */
-    void requestHandler(UniquePtr<BIO> bio, std::string serverRoot, const bool &https, const std::string &port) {
+    void requestHandler(BIO* bio, std::string serverRoot, const bool &https, const std::string &port) {
 
         try {
-            std::string req = server::receive_http_message(bio.get(), https);
+            std::string req = server::receive_http_message(bio, https);
 
             // Validate and get resource/params
             auto valid = httpParser::Validator(req);
@@ -445,17 +445,17 @@ namespace server {
             auto resp = server::serveRequest(&reqInfo);
 
 
-            server::sendTo(bio.get(), resp);
+            server::sendTo(bio, resp);
         }
             // Catch custom server exceptions that contain info about error type and message
         catch (server::httpException &e) {
             auto resp = server::makeResponse(std::to_string(e.GetMStatusCode()), e.GetMCodeMsg(), e.GetMErrMsg(), {});
-            server::sendTo(bio.get(), resp);
+            server::sendTo(bio, resp);
         }
             // Catch all other exceptions and respond with 500 code
         catch (...) {
             auto resp = server::makeResponse("500", "Internal Server Error", "General Error", {});
-            server::sendTo(bio.get(), resp);
+            server::sendTo(bio, resp);
         }
     }
 }

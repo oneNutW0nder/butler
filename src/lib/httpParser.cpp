@@ -127,7 +127,7 @@ void httpParser::Validator::validateHeaders(std::string s) {
     }
 
     // Host header required
-    if (!this->m_seenHost && !this->m_host.empty() || this->m_version != "HTTP/1.0") {
+    if (!this->m_seenHost && !this->m_host.empty() && this->m_version != "HTTP/1.0") {
         throw (server::httpException("Invalid Request", 400, "Bad Request"));
     }
 

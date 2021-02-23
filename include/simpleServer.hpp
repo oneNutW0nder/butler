@@ -78,7 +78,7 @@ namespace server {
 
     void sendTo(BIO *bio, const std::string &resp);
 
-    void requestHandler(UniquePtr<BIO> bio, std::string serverRoot, const bool &https, const std::string &port);
+    void requestHandler(BIO* bio, std::string serverRoot, const bool &https, const std::string &port);
 
     std::filesystem::path init_server();
 
