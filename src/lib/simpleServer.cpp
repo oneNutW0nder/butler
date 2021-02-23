@@ -11,7 +11,7 @@
 namespace server {
 
     // Load openssl
-    void init_ssl(){
+    void init_ssl() {
         SSL_library_init();
         SSL_load_error_strings();
     }
@@ -19,7 +19,7 @@ namespace server {
     // Initialize the server
     // Server Root: $HOME/butler
     std::filesystem::path init_server() {
-        char* home;
+        char *home;
         if ((home = getenv("HOME")) == nullptr) {
             std::cerr << "[!] FATAL: Please set the $HOME env variable... exiting" << std::endl;
             exit(11);
@@ -49,7 +49,7 @@ namespace server {
         }
 
         std::cout << "[+] Server initialization finished." << std::endl;
-        std::cout << "[+] Server Root at: "<< serverRoot << std::endl;
+        std::cout << "[+] Server Root at: " << serverRoot << std::endl;
 
         return serverRoot;
     }
@@ -70,7 +70,7 @@ namespace server {
      * @param bio --> BIO to read from
      * @return --> Data read from the BIO
      */
-    std::string receiveChunk(BIO *bio, const bool& https) {
+    std::string receiveChunk(BIO *bio, const bool &https) {
         char buffer[1024];
         int len = BIO_read(bio, buffer, sizeof(buffer));
         // Check for TLS conn attempt in HTTP mode
@@ -78,17 +78,17 @@ namespace server {
         // Users will see a "secure connection failed" message in the browser
         if (!https) {
             if (buffer[0] == '\026' && buffer[1] == '\003' && buffer[2] == '\001') {
-                throw(httpException("Attempted HTTPS connection on HTTP only server", 400, "Bad Request"));
+                throw (httpException("Attempted HTTPS connection on HTTP only server", 400, "Bad Request"));
             }
         }
         if (len < 0) {
-            throw(std::runtime_error("ERROR reading from BIO"));
+            throw (std::runtime_error("ERROR reading from BIO"));
         } else if (len > 0) {
             return std::string(buffer, len);
         } else if (BIO_should_retry(bio)) {
             return receiveChunk(bio, https);
         } else {
-            throw(std::runtime_error("ERROR reading from empty BIO"));
+            throw (std::runtime_error("ERROR reading from empty BIO"));
         }
     }
 
@@ -100,7 +100,7 @@ namespace server {
      * @param text --> Request headers for splitting
      * @return --> vector of split headers
      */
-    std::vector<std::string> split_headers(const std::string& text) {
+    std::vector<std::string> split_headers(const std::string &text) {
         std::vector<std::string> lines;
         const char *start = text.c_str();
         while (const char *end = strstr(start, "\r\n")) {
@@ -121,7 +121,7 @@ namespace server {
      * @param bio --> pointer to BIO to read from
      * @return --> String representation of the HTTP request
      */
-    std::string receive_http_message(BIO *bio, const bool& https) {
+    std::string receive_http_message(BIO *bio, const bool &https) {
         std::string contentLen = "Content-length";
         std::transform(contentLen.begin(), contentLen.end(), contentLen.begin(), ::tolower);
         std::string headers = server::receiveChunk(bio, https);
@@ -130,14 +130,14 @@ namespace server {
             headers += server::receiveChunk(bio, https);
             end_of_headers = strstr(&headers[0], "\r\n\r\n");
         }
-        std::string body = std::string(end_of_headers+4, &headers[headers.size()]);
-        headers.resize(end_of_headers+2 - &headers[0]);
+        std::string body = std::string(end_of_headers + 4, &headers[headers.size()]);
+        headers.resize(end_of_headers + 2 - &headers[0]);
         size_t content_length = 0;
-        for (const std::string& line : server::split_headers(headers)) {
+        for (const std::string &line : server::split_headers(headers)) {
             if (const char *colon = strchr(line.c_str(), ':')) {
                 auto header_name = std::string(&line[0], colon);
                 if (header_name == "content-length") {
-                    content_length = std::stoul(colon+1);
+                    content_length = std::stoul(colon + 1);
                 }
             }
         }
@@ -155,7 +155,7 @@ namespace server {
      * @param bio --> BIO to write data to
      * @param resp --> Data to write, usually an HTTP request
      */
-    void sendTo (BIO *bio, const std::string& resp) {
+    void sendTo(BIO *bio, const std::string &resp) {
         BIO_write(bio, resp.data(), resp.size());
         BIO_flush(bio);
 
@@ -178,8 +178,8 @@ namespace server {
         return server::UniquePtr<BIO>(BIO_pop(listenBIO));
     }
 
-    std::string makeResponse(const std::string& code, const std::string& codeMsg,
-                                const std::string& content, const std::map<std::string, std::string>& otherHeaders) {
+    std::string makeResponse(const std::string &code, const std::string &codeMsg,
+                             const std::string &content, const std::map<std::string, std::string> &otherHeaders) {
         // TODO: Add DATE header and value to all responses
         // HTTP/1.1 CODE CODE_MSG
         // Get date
@@ -188,7 +188,7 @@ namespace server {
         struct tm tm = *gmtime(&now);
         strftime(buff, sizeof(buff), "%a, %d %b %Y %H:%M:%S %Z", &tm);
 
-        std::string resp = fmt::format("HTTP/1.1 {} {}\r\n",  code, codeMsg);
+        std::string resp = fmt::format("HTTP/1.1 {} {}\r\n", code, codeMsg);
         resp += fmt::format("Date: {}\r\n", buff);
         resp += "Server: Butler\r\n";
         resp += fmt::format("Content-Length: {}\r\n", content.length());
@@ -203,7 +203,7 @@ namespace server {
     }
 
     // TODO: Figure out a way to return params as well... might have to go back to a std::vector?
-    std::pair<std::string, std::string> parseResource(std::string reqTarget, const bool& absolute) {
+    std::pair<std::string, std::string> parseResource(std::string reqTarget, const bool &absolute) {
 
         int loc;
         std::string params;
@@ -256,22 +256,22 @@ namespace server {
 
 
     // Implement each method and return the correct response
-    std::string serveRequest(struct requestInfo* reqInfo){
+    std::string serveRequest(struct requestInfo *reqInfo) {
         // Lock this entire method because of the filesystem operations
-        std::lock_guard<std::mutex> lk (mut);
+        std::lock_guard<std::mutex> lk(mut);
 
         /** GET METHOD **/
         if (reqInfo->method == "GET") {
             // check for: 404 File not found!
             if (!std::filesystem::exists(reqInfo->serverRoot += reqInfo->resource)) {
-                throw(httpException("The file you requested does not exist", 404, "Not Found"));
+                throw (httpException("The file you requested does not exist", 404, "Not Found"));
             }
 
             // serverRoot is now the full path to the resource because of the "+=" above
             std::ifstream fd(reqInfo->serverRoot, std::ios::in);
             if (!fd.is_open()) {
                 // Assume forbidden if can't open... no good way to check for permission failure
-                throw(httpException("Failed to open the requested resource: Permission denied", 403, "Forbidden"));
+                throw (httpException("Failed to open the requested resource: Permission denied", 403, "Forbidden"));
             }
 
             // If we make it here read the requested file and send it
@@ -279,30 +279,30 @@ namespace server {
             tmp << fd.rdbuf();
             return makeResponse("200", "OK", tmp.str(), {});
         }
-        /** HEAD METHOD **/
+            /** HEAD METHOD **/
         else if (reqInfo->method == "HEAD") {
             // check for: 404 File not found!
             if (!std::filesystem::exists(reqInfo->serverRoot += reqInfo->resource)) {
                 // Throw with no "err_msg" beacuse HEAD response should have no body
-                throw(httpException("", 404, "Not Found"));
+                throw (httpException("", 404, "Not Found"));
             }
 
             // If we make it here we send a request with no body
             return makeResponse("200", "OK", "", {});
         }
-        /** POST METHOD **/
+            /** POST METHOD **/
         else if (reqInfo->method == "POST") {
             // TODO: Make this real POST method... For now make it the same as GET
             // check for: 404 File not found!
             if (!std::filesystem::exists(reqInfo->serverRoot += reqInfo->resource)) {
-                throw(httpException("The file you requested does not exist", 404, "Not Found"));
+                throw (httpException("The file you requested does not exist", 404, "Not Found"));
             }
 
             // serverRoot is now the full path to the resource because of the "+=" above
             std::ifstream fd(reqInfo->serverRoot, std::ios::in);
             if (!fd.is_open()) {
                 // Assume forbidden if can't open... no good way to check for permission failure
-                throw(httpException("Failed to open the requested resource: Permission denied", 403, "Forbidden"));
+                throw (httpException("Failed to open the requested resource: Permission denied", 403, "Forbidden"));
             }
 
             // If we make it here read the requested file and send it
@@ -310,7 +310,7 @@ namespace server {
             tmp << fd.rdbuf();
             return makeResponse("200", "OK", tmp.str().append("<br>POST is WIP " + reqInfo->body), {});
         }
-        /** PUT METHOD **/
+            /** PUT METHOD **/
         else if (reqInfo->method == "PUT") {
             // Check for existing file
             if (!std::filesystem::exists(reqInfo->serverRoot += reqInfo->resource)) {
@@ -318,7 +318,7 @@ namespace server {
                 // This will create a directory for the final resource as well but will be deleted later
                 if (!std::filesystem::create_directories(reqInfo->serverRoot)) {
                     // Failure to create directories return 403
-                    throw(httpException("Failed to create file: Forbidden", 403, "Forbidden"));
+                    throw (httpException("Failed to create file: Forbidden", 403, "Forbidden"));
                 }
 
                 // Delete final directory because that should be the file targeted by PUT
@@ -326,7 +326,7 @@ namespace server {
                     // Failure to delete --> 403
                     // Failed to create message displayed because this function is involved in
                     //      the file creation process.... albeit janky
-                    throw(httpException("Failed to create file: Forbidden", 403, "Forbidden"));
+                    throw (httpException("Failed to create file: Forbidden", 403, "Forbidden"));
                 }
             }
 
@@ -350,21 +350,21 @@ namespace server {
             // Only supporting a 201 response for both creation and modified content
             return makeResponse("201", "Created", "", {{"Location", loc}});
         }
-        /** DELETE METHOD **/
+            /** DELETE METHOD **/
         else if (reqInfo->method == "DELETE") {
             // Remove returns false if the file did not exist and true if it was deleted
             if (!std::filesystem::remove_all(reqInfo->serverRoot += reqInfo->resource)) {
-                throw(httpException("The file you requested does not exist", 404, "Not Found"));
+                throw (httpException("The file you requested does not exist", 404, "Not Found"));
             }
 
             return makeResponse("200", "OK", "Successfully deleted the requested resource", {});
         }
         // Throw an exception here because we should never be in an invalidated state here
-        throw(httpException("Extreme Fatal Error", 500, "Internal Server Error"));
+        throw (httpException("Extreme Fatal Error", 500, "Internal Server Error"));
     }
 
 
-    void requestHandler(UniquePtr<BIO> bio, std::string serverRoot, const bool& https, const std::string& port) {
+    void requestHandler(UniquePtr<BIO> bio, std::string serverRoot, const bool &https, const std::string &port) {
 
         try {
             std::string req = server::receive_http_message(bio.get(), https);
@@ -398,12 +398,12 @@ namespace server {
 
             server::sendTo(bio.get(), resp);
         }
-        // Catch custom server exceptions that contain info about error type and message
-        catch (server::httpException& e) {
+            // Catch custom server exceptions that contain info about error type and message
+        catch (server::httpException &e) {
             auto resp = server::makeResponse(std::to_string(e.GetMStatusCode()), e.GetMCodeMsg(), e.GetMErrMsg(), {});
             server::sendTo(bio.get(), resp);
         }
-        // Catch all other exceptions and respond with 500 code
+            // Catch all other exceptions and respond with 500 code
         catch (...) {
             auto resp = server::makeResponse("500", "Internal Server Error", "General Error", {});
             server::sendTo(bio.get(), resp);

@@ -13,7 +13,7 @@
  * This program is an HTTP/HTTPS server. Adapted from Arthur O'Dwyer's
  * openssl with C++ tutorial: https://quuxplusone.github.io/blog/2020/01/24/openssl-part-1/
  */
-int main(const int argc, const char *argv[]){
+int main(const int argc, const char *argv[]) {
 
     // Args: ./server --ip IP --port PORT [--cert CERT --key PEM]
     ArgumentParser args;
@@ -28,7 +28,7 @@ int main(const int argc, const char *argv[]){
     auto cert = args.retrieve<std::string>("cert");
     auto pem = args.retrieve<std::string>("key");
 
-    if (!cert.empty() && pem.empty()){
+    if (!cert.empty() && pem.empty()) {
         std::cerr << "ERROR: Provided certificate but no matching private key given..." << std::endl;
         std::cerr << args.usage();
         exit(0);
@@ -37,7 +37,7 @@ int main(const int argc, const char *argv[]){
     // Setup HTTPS/TLS things if needed
     bool https = false;
     auto ctx = server::UniquePtr<SSL_CTX>(SSL_CTX_new(TLS_method()));
-    if (!cert.empty() && !pem.empty()){
+    if (!cert.empty() && !pem.empty()) {
         https = true;
         server::init_ssl();
         SSL_CTX_set_min_proto_version(ctx.get(), TLS1_2_VERSION);

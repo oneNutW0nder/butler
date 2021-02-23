@@ -7,7 +7,7 @@
 
 #define DELIMETERS "(),/:;<=>?@[\\]{}"
 
-namespace httpParser{
+namespace httpParser {
     /**
      * httpParser::Validator is used to validate the syntax of an HTTP/1.1
      * request. The methods used in validation try to adhere to the rules of
@@ -43,7 +43,9 @@ namespace httpParser{
         explicit Validator(std::string &request);
 
         bool validateRequestTarget(const std::string &reqTarget);
+
         void validateRequestLine(std::string reqLine);
+
         void validateHeaders(std::string s);
 
         // GETTERS
@@ -69,7 +71,6 @@ namespace httpParser{
 
     };
 }
-
 
 
 #endif //BUTLER_CLIENT_HTTPPARSER_HPP
