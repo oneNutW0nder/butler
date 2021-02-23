@@ -344,6 +344,7 @@ namespace server {
             }
 
             loc.append(DEFAULT_SERVER_NAME);
+            loc.append(":" + reqInfo->port);
             loc.append(reqInfo->resource);
 
             // Only supporting a 201 response for both creation and modified content
