@@ -59,36 +59,6 @@ void http::Request::sendRequest() {
     sock.sendTo(this->m_req);
     sock.readFrom();
     this->m_resp = sock.GetMResp();
-
-    // TODO: Figure out handling redirects...
-    //       saving code below
-//    sock.~socket::Socket();
-//    do{
-
-//        auto resp = sock.GetMResp();
-//        std::string stringResp(resp.begin(), resp.end());
-//        auto headers = parseHeaders(stringResp);
-//
-//        if (!headers["HTTP/1.1"].find("301") == std::string::npos
-//            || !headers["HTTP/1.1"].find("302") == std::string::npos){
-//            break;
-//        }
-//
-//        std::string location = headers["Location:"];
-//        auto parsedLocation = parseUrl(location);
-//
-//        this->m_host = parsedLocation["host"];
-//        this->m_path = parsedLocation["path"];
-//        this->m_port = parsedLocation["port"];
-//        if(parsedLocation["scheme"] == "https")
-//            this->m_tls = true;
-//        else
-//            this->m_tls = false;
-//
-//        sock.~Socket();
-//
-//    }while(this->m_redirects);
-
 }
 
 /**
@@ -120,7 +90,6 @@ void http::Request::parseUrl(std::string &url) {
         url = ltrim(url, "http://");
     } else {
         // This block handles receiving a path such as /absolute/path or "relative/path"
-        // TODO:
     }
 
     // No path remaining in URL so we can setup defaults
@@ -212,7 +181,7 @@ std::unordered_set<std::string> http::Request::parseHtml(const std::string &rgx)
     std::unordered_set<std::string> unqVals = {};
     std::regex re(rgx, std::regex::ECMAScript);
     for (std::sregex_iterator it = std::sregex_iterator(this->m_resp_body.begin(), this->m_resp_body.end(), re);
-         it != std::sregex_iterator(); it++) {
+        it != std::sregex_iterator(); it++) {
         unqVals.insert(it->str(0));
     }
 

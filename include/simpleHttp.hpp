@@ -39,7 +39,7 @@ namespace http {
         std::map<std::string, std::string> m_req_headers;
         std::string m_resp_body;
         std::string m_req_body;
-        std::string m_resp; // TODO: maybe rename this
+        std::string m_resp; 
 
         bool m_redirects = false;
         bool m_tls = false;
