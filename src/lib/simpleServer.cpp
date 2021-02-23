@@ -1,6 +1,7 @@
 #include <fstream>
 #include <cstdlib>
 #include <utility>
+#include <ctime>
 
 #include "simpleServer.hpp"
 #include "httpParser.hpp"
@@ -181,7 +182,15 @@ namespace server {
                                 const std::string& content, const std::map<std::string, std::string>& otherHeaders) {
         // TODO: Add DATE header and value to all responses
         // HTTP/1.1 CODE CODE_MSG
+        // Get date
+        char buff[100];
+        time_t now = time(0);
+        struct tm tm = *gmtime(&now);
+        strftime(buff, sizeof(buff), "%a, %d %b %Y %H:%M:%S %Z", &tm);
+
         std::string resp = fmt::format("HTTP/1.1 {} {}\r\n",  code, codeMsg);
+        resp += fmt::format("Date: {}\r\n", buff);
+        resp += "Server: Butler\r\n";
         resp += fmt::format("Content-Length: {}\r\n", content.length());
         resp += fmt::format("Content-Type: text/html\r\n");
         for (auto &i : otherHeaders) {
