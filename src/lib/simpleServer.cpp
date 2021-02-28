@@ -423,6 +423,7 @@ std::string serveRequest(struct requestInfo* reqInfo) {
       setenv("QUERY_STRING", reqInfo->params.c_str(), 0);
 
       // Write php to tmp file
+      // TODO: Check error code and return 500 if exec failed
       system("php-cgi --no-header > /tmp/phpOut");
       std::ifstream tmpfile{"/tmp/phpOut"};
       std::stringstream out;
@@ -451,12 +452,9 @@ std::string serveRequest(struct requestInfo* reqInfo) {
       setenv("CONTENT_TYPE", "application/x-www-form-urlencoded", 0);
       setenv("BODY", reqInfo->body.c_str(), 0);
 
-      // Write php to tmp file
-      // ! php-cgi is hanging on this execution for some reason
-      // ! something about this code makes it hang
-      // ? Env vars missing?
-      // ? Values are wrong?
-      system("php-cgi > /tmp/phpOut");
+      // PIPE $BODY to php
+      // ! VULNERABLE
+      system("echo $BODY | php-cgi > /tmp/phpOut");
       std::ifstream tmpfile{"/tmp/phpOut"};
       std::stringstream out;
       out << tmpfile.rdbuf();
