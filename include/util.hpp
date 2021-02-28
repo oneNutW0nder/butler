@@ -15,5 +15,6 @@ std::string &ltrim(std::string &s, const std::string &t);
 
 std::string trimSpace(std::string str);
 
+std::string exec(std::string command);
 
 #endif
