@@ -8,6 +8,7 @@
 #include <utility>
 
 #include "httpParser.hpp"
+#include "util.hpp"
 
 namespace server {
 
@@ -23,7 +24,7 @@ void init_ssl() {
  * @return --> The root directory for the server default: "$HOME/butler-server"
  */
 std::filesystem::path init_server() {
-  char *home;
+  char* home;
   if ((home = getenv("HOME")) == nullptr) {
     std::cerr << "[!] FATAL: Please set the $HOME env variable... exiting"
               << std::endl;
@@ -59,6 +60,12 @@ std::filesystem::path init_server() {
     helloFile.close();
   }
 
+  // METHOD AGNOSTIC VARS
+  setenv("GATEWAY_INTERFACE", "CGI/1.1", 0);
+  setenv("SERVER_PROTOCOL", "HTTP/1.1", 0);
+  setenv("REMOTE_HOST", "127.0.0.1", 0);
+  setenv("REDIRECT_STATUS", "0", 0);
+
   std::cout << "[+] Server initialization finished." << std::endl;
   std::cout << "[+] Server Root at: " << serverRoot << std::endl;
 
@@ -67,7 +74,7 @@ std::filesystem::path init_server() {
 
 // Used for fatal errors with SSL
 // https://quuxplusone.github.io/blog/2020/01/24/openssl-part-1/
-void ssl_errors(const char *str) {
+void ssl_errors(const char* str) {
   std::cerr << str << std::endl;
   ERR_print_errors_fp(stderr);
   exit(10);
@@ -82,7 +89,7 @@ void ssl_errors(const char *str) {
  *
  * @return --> Data read from the BIO
  */
-std::string receiveChunk(BIO *bio, const bool &https) {
+std::string receiveChunk(BIO* bio, const bool& https) {
   char buffer[1024];
   int len = BIO_read(bio, buffer, sizeof(buffer));
   // Check for TLS conn attempt in HTTP mode
@@ -114,10 +121,10 @@ std::string receiveChunk(BIO *bio, const bool &https) {
  *
  * @return --> vector of split headers
  */
-std::vector<std::string> split_headers(const std::string &text) {
+std::vector<std::string> split_headers(const std::string& text) {
   std::vector<std::string> lines;
-  const char *start = text.c_str();
-  while (const char *end = strstr(start, "\r\n")) {
+  const char* start = text.c_str();
+  while (const char* end = strstr(start, "\r\n")) {
     lines.emplace_back(start, end);
     start = end + 2;
   }
@@ -135,12 +142,12 @@ std::vector<std::string> split_headers(const std::string &text) {
  *
  * @return --> String representation of the HTTP request
  */
-std::string receive_http_message(BIO *bio, const bool &https) {
+std::string receive_http_message(BIO* bio, const bool& https) {
   std::string contentLen = "Content-length";
   std::transform(contentLen.begin(), contentLen.end(), contentLen.begin(),
                  ::tolower);
   std::string headers = server::receiveChunk(bio, https);
-  char *end_of_headers = strstr(&headers[0], "\r\n\r\n");
+  char* end_of_headers = strstr(&headers[0], "\r\n\r\n");
   while (end_of_headers == nullptr) {
     headers += server::receiveChunk(bio, https);
     end_of_headers = strstr(&headers[0], "\r\n\r\n");
@@ -148,8 +155,8 @@ std::string receive_http_message(BIO *bio, const bool &https) {
   std::string body = std::string(end_of_headers + 4, &headers[headers.size()]);
   headers.resize(end_of_headers + 2 - &headers[0]);
   size_t content_length = 0;
-  for (const std::string &line : server::split_headers(headers)) {
-    if (const char *colon = strchr(line.c_str(), ':')) {
+  for (const std::string& line : server::split_headers(headers)) {
+    if (const char* colon = strchr(line.c_str(), ':')) {
       auto header_name = std::string(&line[0], colon);
       if (header_name == "content-length") {
         content_length = std::stoul(colon + 1);
@@ -169,7 +176,7 @@ std::string receive_http_message(BIO *bio, const bool &https) {
  * @param bio --> BIO to write data to
  * @param resp --> Data to write, usually an HTTP request
  */
-void sendTo(BIO *bio, const std::string &resp) {
+void sendTo(BIO* bio, const std::string& resp) {
   BIO_write(bio, resp.data(), resp.size());
   BIO_flush(bio);
 }
@@ -185,7 +192,7 @@ void sendTo(BIO *bio, const std::string &resp) {
  *
  * @return --> returns the new connection BIO or nullptr if failed
  */
-server::UniquePtr<BIO> new_connection(BIO *listenBIO) {
+server::UniquePtr<BIO> new_connection(BIO* listenBIO) {
   if (BIO_do_accept(listenBIO) <= 0) {
     return nullptr;
   }
@@ -205,9 +212,9 @@ server::UniquePtr<BIO> new_connection(BIO *listenBIO) {
  * @return              --> response as a string
  */
 std::string makeResponse(
-    const std::string &code, const std::string &codeMsg,
-    const std::string &content,
-    const std::map<std::string, std::string> &otherHeaders) {
+    const std::string& code, const std::string& codeMsg,
+    const std::string& content,
+    const std::map<std::string, std::string>& otherHeaders) {
   // TODO: Add DATE header and value to all responses
   // HTTP/1.1 CODE CODE_MSG
   // Get date
@@ -221,7 +228,7 @@ std::string makeResponse(
   resp += "Server: Butler\r\n";
   resp += fmt::format("Content-Length: {}\r\n", content.length());
   resp += fmt::format("Content-Type: text/html\r\n");
-  for (auto &i : otherHeaders) {
+  for (auto& i : otherHeaders) {
     resp += fmt::format("{}: {}\r\n", i.first, i.second);
   }
   resp += fmt::format("\r\n");
@@ -242,7 +249,7 @@ std::string makeResponse(
  * @return  --> a pair of <resource, params>
  */
 std::pair<std::string, std::string> parseResource(std::string reqTarget,
-                                                  const bool &absolute) {
+                                                  const bool& absolute) {
   // TODO: Figure out a way to return params as well... might use vector
 
   int loc;
@@ -304,10 +311,9 @@ std::pair<std::string, std::string> parseResource(std::string reqTarget,
  *
  * @return  --> returns a response to send back to the client
  */
-std::string serveRequest(struct requestInfo *reqInfo) {
+std::string serveRequest(struct requestInfo* reqInfo) {
   // Lock this entire method because of the filesystem operations
   // std::lock_guard<std::mutex> lk(mut);
-  // ! Cleanup logic flow
 
   // * PUT AND DELETE FIRST BECAUSE THEY ARE STATE ALTERING WIHTOUT 404
   // * DELETE METHOD
@@ -401,23 +407,70 @@ std::string serveRequest(struct requestInfo *reqInfo) {
         "Forbidden"));
   }
 
+  bool php = false;
+  if (reqInfo->serverRoot.ends_with(".php")) {
+    fd.close();
+    php = true;
+    // Set path to script file
+    setenv("SCRIPT_FILENAME", reqInfo->serverRoot.c_str(), 1);
+  }
+
   // * GET METHOD
   if (reqInfo->method == "GET") {
-    std::stringstream tmp;
-    tmp << fd.rdbuf();
-    return makeResponse("200", "OK", tmp.str(), {});
+    if (php) {
+      // Set GET env vars
+      setenv("REQUEST_METHOD", "GET", 0);
+      setenv("QUERY_STRING", reqInfo->params.c_str(), 0);
+
+      // Write php to tmp file
+      system("php-cgi --no-header > /tmp/phpOut");
+      std::ifstream tmpfile{"/tmp/phpOut"};
+      std::stringstream out;
+      out << tmpfile.rdbuf();
+
+      // Unset env vars
+      unsetenv("REQUEST_METHOD");
+      unsetenv("QUERY_STRING");
+
+      // Return the output of the PHP script
+      return makeResponse("200", "OK", out.str(), {});
+    } else {
+      std::stringstream tmp;
+      tmp << fd.rdbuf();
+      return makeResponse("200", "OK", tmp.str(), {});
+    }
   }
 
   // * POST METHOD
   if (reqInfo->method == "POST") {
-    // * This block handles serving a file that was not a PHP file
-    // * Return contents of the file and add a message
-    std::stringstream tmp;
-    tmp << fd.rdbuf();
-    return makeResponse(
-        "200", "OK",
-        tmp.str().append("<br>Sent POST to non PHP resource! " + reqInfo->body),
-        {});
+    if (php) {
+      // Set POST env vars
+      setenv("REQUEST_METHOD", "POST", 0);
+      setenv("CONTENT_LENGTH", std::to_string(reqInfo->body.length()).c_str(),
+             0);
+      setenv("CONTENT_TYPE", "application/x-www-form-urlencoded", 0);
+      setenv("BODY", reqInfo->body.c_str(), 0);
+
+      // FROM UTIL.cpp
+      auto out = exec("php-cgi --no-header");
+      std::cout << out << std::endl;
+
+      // Unset env vars
+      unsetenv("REQUEST_METHOD");
+      unsetenv("CONTENT_LENGTH");
+      unsetenv("CONTENT_TYPE");
+      unsetenv("BODY");
+
+      return makeResponse("200", "OK", out, {});
+    } else {
+      std::stringstream tmp;
+      tmp << fd.rdbuf();
+      return makeResponse(
+          "200", "OK",
+          tmp.str().append("<br>Sent POST to non PHP resource! " +
+                           reqInfo->body),
+          {});
+    }
   }
   // Throw an exception here because we should never be in an invalidated state
   throw(httpException("Extreme Fatal Error", 500, "Internal Server Error"));
@@ -433,8 +486,8 @@ std::string serveRequest(struct requestInfo *reqInfo) {
  * @param https         --> whether or not we are in HTTPS mode
  * @param port          --> Port for the server
  */
-void requestHandler(BIO *bio, std::string serverRoot, const bool &https,
-                    const std::string &port) {
+void requestHandler(BIO* bio, std::string serverRoot, const bool& https,
+                    const std::string& port) {
   try {
     std::string req = server::receive_http_message(bio, https);
 
@@ -477,7 +530,7 @@ void requestHandler(BIO *bio, std::string serverRoot, const bool &https,
   }
   // Catch custom server exceptions that contain info about error type and
   // message
-  catch (server::httpException &e) {
+  catch (server::httpException& e) {
     auto resp = server::makeResponse(std::to_string(e.GetMStatusCode()),
                                      e.GetMCodeMsg(), e.GetMErrMsg(), {});
     server::sendTo(bio, resp);
