@@ -451,9 +451,15 @@ std::string serveRequest(struct requestInfo* reqInfo) {
       setenv("CONTENT_TYPE", "application/x-www-form-urlencoded", 0);
       setenv("BODY", reqInfo->body.c_str(), 0);
 
-      // FROM UTIL.cpp
-      auto out = exec("php-cgi --no-header");
-      std::cout << out << std::endl;
+      // Write php to tmp file
+      // ! php-cgi is hanging on this execution for some reason
+      // ! something about this code makes it hang
+      // ? Env vars missing?
+      // ? Values are wrong?
+      system("php-cgi > /tmp/phpOut");
+      std::ifstream tmpfile{"/tmp/phpOut"};
+      std::stringstream out;
+      out << tmpfile.rdbuf();
 
       // Unset env vars
       unsetenv("REQUEST_METHOD");
@@ -461,7 +467,7 @@ std::string serveRequest(struct requestInfo* reqInfo) {
       unsetenv("CONTENT_TYPE");
       unsetenv("BODY");
 
-      return makeResponse("200", "OK", out, {});
+      return makeResponse("200", "OK", out.str(), {});
     } else {
       std::stringstream tmp;
       tmp << fd.rdbuf();
