@@ -2,6 +2,7 @@
 #define UTIL_HPP
 
 #include <iostream>
+#include <map>
 #include <string>
 #include <vector>
 
@@ -15,4 +16,5 @@ std::string &ltrim(std::string &s, const std::string &t);
 
 std::string trimSpace(std::string str);
 
+void urlDecode(std::string &str);
 #endif

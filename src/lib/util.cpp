@@ -51,3 +51,18 @@ std::string trimSpace(std::string str) {
 
   return str;
 }
+
+void urlDecode(std::string& str) {
+  std::map<std::string, std::string> encDic = {
+      {"%3A", ":"}, {"%2F", "/"}, {"%3F", "?"}, {"%23", "#"}, {"%5B", "["},
+      {"%5D", "]"}, {"%40", "@"}, {"%21", "!"}, {"%24", "$"}, {"%26", "&"},
+      {"%27", "'"}, {"%28", "("}, {"%29", ")"}, {"%2A", "*"}, {"%2B", "+"},
+      {"%2C", ","}, {"%3B", ";"}, {"%3D", "="}, {"%25", "%"}, {"%20", " "},
+      {"+", " "}};
+  int loc = -1;
+  for (auto& i : encDic) {
+    while (str.find(i.first) != std::string::npos) {
+      str.replace(str.find(i.first), 3, i.second);
+    }
+  }
+}
