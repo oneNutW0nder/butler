@@ -250,10 +250,11 @@ std::string makeResponse(
  */
 std::pair<std::string, std::string> parseResource(std::string reqTarget,
                                                   const bool& absolute) {
-  // TODO: Figure out a way to return params as well... might use vector
-
   int loc;
   std::string params;
+
+  // Decode the URL first
+  urlDecode(reqTarget);
 
   // Handle absolute request
   if (absolute) {
