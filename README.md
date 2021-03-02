@@ -58,6 +58,7 @@ make server
 ```
 
 Notes about the server:
+   - PHP SUPPORT: PHP is supported for `GET` and `POST` requests. Parameters are accepted via the `request-target` for `GET` and in the request body for `POST`.
    - The server will create its root in `$HOME/butler-server` so it will need to have the correct permissions. A default `index.html` will also be written to that directory so that you can immediately test functionality.
    - As of right now, the `POST` method responds just like a `GET` request but will also display the body of the request in its response. This will be changed in the next assignment when we implement PHP.
    - If the server is operating in _HTTP_ mode and an _HTTPS_ request is made, the server will send back a `400 Bad Request` message which the browser will display as `Secure Connection Failed`. This cleanly handles the attempted connection and frees up the socket to handle the next request.
