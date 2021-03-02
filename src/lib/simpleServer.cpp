@@ -423,8 +423,11 @@ std::string serveRequest(struct requestInfo* reqInfo) {
       setenv("QUERY_STRING", reqInfo->params.c_str(), 0);
 
       // Write php to tmp file
-      // TODO: Check error code and return 500 if exec failed
-      system("php-cgi --no-header > /tmp/phpOut");
+      if (system("php-cgi --no-header > /tmp/phpOut") != 0) {
+        // Throw 500 for failed system call
+        throw(
+            httpException("Extreme Fatal Error", 500, "Internal Server Error"));
+      }
       std::ifstream tmpfile{"/tmp/phpOut"};
       std::stringstream out;
       out << tmpfile.rdbuf();
@@ -445,6 +448,8 @@ std::string serveRequest(struct requestInfo* reqInfo) {
   // * POST METHOD
   if (reqInfo->method == "POST") {
     if (php) {
+      // URL decode request body first
+      urlDecode(reqInfo->body);
       // Set POST env vars
       setenv("REQUEST_METHOD", "POST", 0);
       setenv("CONTENT_LENGTH", std::to_string(reqInfo->body.length()).c_str(),
@@ -454,7 +459,11 @@ std::string serveRequest(struct requestInfo* reqInfo) {
 
       // PIPE $BODY to php
       // ! VULNERABLE
-      system("echo $BODY | php-cgi > /tmp/phpOut");
+      if (system("echo $BODY | php-cgi --no-header > /tmp/phpOut") != 0) {
+        // Throw 500 for failed system call
+        throw(
+            httpException("Extreme Fatal Error", 500, "Internal Server Error"));
+      }
       std::ifstream tmpfile{"/tmp/phpOut"};
       std::stringstream out;
       out << tmpfile.rdbuf();
