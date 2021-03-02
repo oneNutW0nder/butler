@@ -215,7 +215,6 @@ std::string makeResponse(
     const std::string& code, const std::string& codeMsg,
     const std::string& content,
     const std::map<std::string, std::string>& otherHeaders) {
-  // TODO: Add DATE header and value to all responses
   // HTTP/1.1 CODE CODE_MSG
   // Get date
   char buff[100];
