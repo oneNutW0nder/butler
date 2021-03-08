@@ -4,6 +4,7 @@ build/
 cmake-build-debug/
 *.txt
 *.http
+.clang-format
 
 # Prerequisites
 *.d
