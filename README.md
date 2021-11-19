@@ -1,6 +1,5 @@
 # Butler HTTP Client and Webserver
 
-This repo will contain all coursework for CSEC-731
 
 ## Setup
 This project is designed to run on Ubuntu20. Please read everything below before installing any software.
